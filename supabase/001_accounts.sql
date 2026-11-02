@@ -9,7 +9,7 @@ create table public.player_profiles (
 create unique index player_profiles_username_unique on public.player_profiles(lower(username));
 create table public.player_saves (
  user_id uuid primary key references auth.users(id) on delete cascade,
- data jsonb not null default '{"version":1,"coins":0,"best":0,"runs":0,"levels":{"engine":0,"tank":0,"wings":0}}',
+ data jsonb not null default '{"version":2,"coins":0,"best":0,"busBest":0,"runs":0,"levels":{"engine":0,"tank":0,"wings":0,"chassis":0,"ramp":0,"rockets":0,"efficiency":0,"steering":0,"reserve":0,"cargo":0,"lock":0,"return":0},"inventory":{"fuel":1,"turbo":1,"lift":1,"nitro":0,"light":0},"bus":{"reverse":0,"rocket":0,"weight":0,"leak":0,"horse":0,"compass":0,"magnet":0,"cough":0,"fika":0,"wind":0,"parachute":0,"krylbo":0},"tickets":1,"crates":1,"pending":null,"received":[],"history":[]}',
  revision bigint not null default 0
 );
 alter table public.player_profiles enable row level security;
@@ -30,11 +30,12 @@ create function norrut_private.save_progress(expected_revision bigint,next_data 
 declare next_revision bigint;
 begin
  if auth.uid() is null then raise exception 'not authenticated'; end if;
- if jsonb_typeof(next_data) <> 'object' or (next_data->>'version') is distinct from '1'
- or not (next_data ?& array['coins','best','runs','levels']) then raise exception 'invalid save'; end if;
- if not (next_data->'levels' ?& array['engine','tank','wings']) then raise exception 'invalid levels'; end if;
- if exists(select 1 from jsonb_each(next_data) kv where kv.key in ('coins','best','runs') and (jsonb_typeof(kv.value)<>'number' or kv.value::text !~ '^[0-9]{1,12}$')) then raise exception 'invalid values'; end if;
- if exists(select 1 from jsonb_each(next_data->'levels') kv where kv.key in ('engine','tank','wings') and (jsonb_typeof(kv.value)<>'number' or kv.value::text !~ '^([0-9]|1[0-9]|20)$')) then raise exception 'invalid levels'; end if;
+ if jsonb_typeof(next_data) <> 'object' or (next_data->>'version') is distinct from '2'
+ or not (next_data ?& array['coins','best','busBest','runs','levels','inventory','bus','tickets','crates','pending','received','history']) then raise exception 'invalid save'; end if;
+ if not (next_data->'levels' ?& array['engine','tank','wings','chassis','ramp','rockets','efficiency','steering','reserve','cargo','lock','return']) then raise exception 'invalid levels'; end if;
+ if exists(select 1 from jsonb_each(next_data) kv where kv.key in ('coins','best','busBest','runs','tickets','crates') and (jsonb_typeof(kv.value)<>'number' or kv.value::text !~ '^[0-9]{1,12}$')) then raise exception 'invalid values'; end if;
+ if exists(select 1 from jsonb_each(next_data->'levels') kv where jsonb_typeof(kv.value)<>'number' or kv.value::text !~ '^([0-9]|1[0-9]|20)$') then raise exception 'invalid levels'; end if;
+ if jsonb_typeof(next_data->'inventory')<>'object' or jsonb_typeof(next_data->'bus')<>'object' or jsonb_typeof(next_data->'history')<>'array' or jsonb_typeof(next_data->'received')<>'array' then raise exception 'invalid inventory'; end if;
  update public.player_saves set data=next_data,revision=revision+1 where user_id=auth.uid() and revision=expected_revision returning revision into next_revision;
  if next_revision is null then raise exception 'save conflict'; end if;
  return next_revision;

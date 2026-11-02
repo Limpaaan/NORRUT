@@ -1,7 +1,7 @@
-import {fresh,type Save} from './model.ts';
+import {fresh,upgrades,boosters,sabotages,type Save} from './model.ts';
 type Config={url:string;publishableKey:string};
 type Session={access_token:string;refresh_token:string;expires_at:number;user:{id:string;user_metadata?:{username?:string}}};
-export function validSave(s:unknown):s is Save {const v=s as Save;return !!v&&v.version===1&&['coins','best','runs'].every(k=>Number.isSafeInteger(v[k as 'coins'])&&v[k as 'coins']>=0)&&!!v.levels&&['engine','tank','wings'].every(k=>Number.isInteger(v.levels[k as 'engine'])&&v.levels[k as 'engine']>=0&&v.levels[k as 'engine']<=20);}
+export function validSave(s:unknown):s is Save {const v=s as Save;return !!v&&v.version===2&&['coins','best','busBest','runs','tickets','crates'].every(k=>Number.isSafeInteger(v[k as 'coins'])&&v[k as 'coins']>=0)&&!!v.levels&&upgrades.every(u=>Number.isInteger(v.levels[u.id])&&v.levels[u.id]>=0&&v.levels[u.id]<=u.max)&&!!v.inventory&&boosters.every(b=>Number.isInteger(v.inventory[b.id])&&v.inventory[b.id]>=0)&&!!v.bus&&sabotages.every(b=>Number.isInteger(v.bus[b.id])&&v.bus[b.id]>=0)&&Array.isArray(v.history)&&Array.isArray(v.received);}
 export class Accounts {
  session:Session|null=null; revision=0; private config:Config; private refresh:Promise<void>|null=null;
  constructor(config:Config){this.config=config;}
