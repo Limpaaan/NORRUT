@@ -4,7 +4,7 @@ Spelbart webbspelsutkast i TypeScript och Phaser 3. Starta på Östbergs parkeri
 
 ## Spela och utveckla
 
-Installera Node.js 24 med npm. Kör `npm ci` och `npm run dev`. För produktion: `npm run build`. `dist/` kan publiceras hos en statisk webbvärd. `npm test` kör 27 tester för fysik, ekonomi, sparformat och tangentinställningar.
+Installera Node.js 24 med npm. Kör `npm ci` och `npm run dev`. För produktion: `npm run build`. `dist/` kan publiceras hos en statisk webbvärd. `npm test` kör 28 tester för fysik, ekonomi, sparformat och tangentinställningar.
 
 Pilar eller WASD styr: vänster/A sänker nosen, höger/D höjer nosen, upp/W driver motorn och ned/S eller mellanslag ger boost. Öppna Tangentinställningar för att ändra tangenter. Mobilen har hållknappar.
 

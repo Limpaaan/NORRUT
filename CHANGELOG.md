@@ -8,7 +8,7 @@ Fysiken använder nu fart relativt nosvinkel, lyft vinkelrätt mot rörelsen, mo
 
 Provflygning lånar nivå 1 av motor, glidvinge och raket så att alla sabotage kan testas utan att ändra sparade uppgraderingar. Menyer och förlorat fönsterfokus pausar flygningen. Lokala sparningar behålls.
 
-Verifiering: 27 tester samt produktionsbygge. Supabase och spel mellan enheter är fortfarande inte aktiverade.
+Verifiering: 28 tester samt produktionsbygge. Supabase och spel mellan enheter är fortfarande inte aktiverade.
 
 # 0.2 — Verkstaden i Avesta
 
