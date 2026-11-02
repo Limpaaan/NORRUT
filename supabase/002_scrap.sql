@@ -9,7 +9,7 @@ begin
  if auth.uid() is null then raise exception 'Logga in först';end if;
  perform pg_advisory_xact_lock(74001);
  if not exists(select 1 from public.scrap_offers where window_id=w) then
- for i in 1..105 loop
+ for i in 1..(select count(*)::integer from norrut_private.product_catalog) loop
  select * into p from norrut_private.product_catalog order by tier,slot offset (i-1) limit 1;
  q:=least(6,floor(ln(greatest(.0000001,random()))/ln(.3))::integer);
  insert into public.scrap_offers values(w::text||'-'||i,w,p.id,q,case when random()<.2 then 'hobby' when random()<.15 then 'overclock' else 'standard' end,greatest(1,floor(p.price*(.08+q*.055))),null);
@@ -37,9 +37,9 @@ begin
  update public.scrap_offers set sold_to=auth.uid() where id=offer_id;
  message:='Delen finns nu under Montering.';
  else
- if category not in ('drive','aero') then raise exception 'Ogiltig kategori';end if;
+ if category not in ('drive','aero','electronics') then raise exception 'Ogiltig kategori';end if;
  
- arr:=case when category='drive' then array['engine','rockets','tank'] else array['wings','chassis','tail','nose'] end;
+ arr:=case when category='electronics' then array['instruments'] when category='drive' then array['engine','rockets','tank'] else array['wings','chassis','tail','nose'] end;
  select coalesce(max(c.tier),0)+1 into cap from jsonb_array_elements(g->'items') a join norrut_private.product_catalog c on c.id=a->>'product' where c.slot=any(arr) and a->>'id'=g->'mounted'->>c.slot;
  search_cost:=10*power(7::numeric,greatest(0,cap-2));if balance<search_cost then raise exception 'För lite pengar';end if;balance:=balance-search_cost;
  roll:=random();message:='Ingenting den här gången.';

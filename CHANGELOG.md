@@ -45,3 +45,12 @@ Verifiering: produktionsbygge och 20 automatiska tester för ekonomi, flygfysik,
 - Transaktionella Supabase-köp, serverbestämt lager och sökning.
 - Produktbaserade flygegenskaper, monterade visuella komponenter och engångsbooster.
 - Bevarad sparning och 32 automatiska tester.
+
+## 0.5.0
+- Tydligare dykning, snabbare fall och energibevarande upptagning.
+- Köpbar analog/digital instrumentpanel med successiva sensorer.
+- 120 produkter och elektronik på skrotupplaget.
+- Egna stadsmiljöer och fyllnadslandskap, ingen loopande Avesta-stad.
+- Sträckstapel mot större milstolpar och publik konto-topplista.
+- 40 tester, inklusive en bränsleplanerad flygning till Hedemora.
+- HANDOFF.md för att fortsätta från en annan dator.

@@ -1,10 +1,13 @@
+import {installRouteHud} from './route';
+import './route.css';
+import {installInstruments} from './instrument-ui';
 import {syncGear} from './equipment';
 import {installProgression,ensureGear} from './progression';
 import Phaser from 'phaser';
 import './style.css';
 import './shell.css';
 import './orientation.css';
-import {buy,buyBooster,cost,unlocked,launch,lockRun,settle,step,practiceVehicle,upgrades,boosters,sabotages,busCount,openCrate,sendBus,type Flight,type Controls,type BoosterId,type SabotageId,type Mode} from './model';
+import {MAX_FLIGHT_SECONDS,buy,buyBooster,cost,unlocked,launch,lockRun,settle,step,practiceVehicle,upgrades,boosters,sabotages,busCount,openCrate,sendBus,type Flight,type Controls,type BoosterId,type SabotageId,type Mode} from './model';
 import {LocalSaveRepository,pilots,addPilot,pilotKey} from './storage';
 import {installHotkeys} from './hotkeys';
 import {installAccounts} from './accounts';
@@ -16,7 +19,7 @@ let pilotId='default',cloudUser:string|null=null,repo=new LocalSaveRepository();
 const save=repo.load();ensureGear(save);const controls:Controls={left:false,right:false,thrust:false,boost:false};
 let activeVehicle=save;
 let phase:'ready'|'countdown'|'flying'='ready',flight:Flight=launch(save),accumulator=0,countdown=0,revealed=false,accountPaused=false;
-const shell=installShell({isPlaying:()=>phase!=='ready',release});
+const shell=installShell({isPlaying:()=>phase!=='ready',release});const instruments=installInstruments();const routeHud=installRouteHud();
 let accounts:ReturnType<typeof installAccounts>|undefined;let progression:ReturnType<typeof installProgression>|undefined;const chosen=new Set<BoosterId>();
 const busy=()=>phase!=='ready'||accountPaused;
 const notice=(text:string)=>{el('shop-notice').textContent=text;};
@@ -53,7 +56,7 @@ el('launch').onclick=()=>{if(busy())return;activeVehicle=mode()==='practice'?pra
 function tick(delta:number){
  if(!shell.canSimulate())return;
  if(phase==='countdown'){countdown-=Math.min(delta,100);if(countdown<=1600&&!revealed){revealed=true;el('flight-status').textContent=flight.blocked?'Verkstadslåset stoppade ett bus!':flight.sabotage?`${sabotages.find(b=>b.id===flight.sabotage)!.name}! ${flight.sender?flight.sender.anonymous?'Från en hemlig uppfinnare':`Från ${flight.sender.senderName}`:'Provflygning'}`:'Alla system klara · 2… 1…';}if(countdown<=0){phase='flying';if(!flight.sabotage&&!flight.blocked)el('flight-status').textContent='';render();}}
- if(phase==='flying'){accumulator+=Math.min(delta/1000,.1);while(accumulator>=1/120&&phase==='flying'){step(flight,controls,activeVehicle,1/120);accumulator-=1/120;if((flight.y<=0&&flight.time>.2)||flight.time>=180){flight.y=Math.max(0,flight.y);const result=settle(save,flight);phase='ready';shell.endRound();el('flight-status').textContent='';persist();el('overlay').style.display='block';el('overlay').querySelector('h2')!.textContent=flight.mode==='practice'?'Provflygningen är klar.':flight.y>0?'Tre minuter. Dags för bärgning.':result.soft?'Mjukt ner. Längre nästa gång.':'En historia till för verkstaden.';el('message').textContent=`${Math.floor(flight.x)} meter norrut${flight.mode==='practice'?' · inga föremål eller mynt förbrukades.':` · +${result.reward} skrotmynt.${result.crate?' Ny verkstadslåda!':''}${result.recovered?' Ett bus återvanns!':''}`}`;el('launch').textContent='En flygning till ↗';render();}}}
+ if(phase==='flying'){accumulator+=Math.min(delta/1000,.1);while(accumulator>=1/120&&phase==='flying'){step(flight,controls,activeVehicle,1/120);accumulator-=1/120;if((flight.y<=0&&flight.time>.2)||flight.time>=MAX_FLIGHT_SECONDS){flight.y=Math.max(0,flight.y);const result=settle(save,flight);phase='ready';shell.endRound();el('flight-status').textContent='';persist();el('overlay').style.display='block';el('overlay').querySelector('h2')!.textContent=flight.mode==='practice'?'Provflygningen är klar.':flight.y>0?'Tio minuter. Dags för bärgning.':result.soft?'Mjukt ner. Längre nästa gång.':'En historia till för verkstaden.';el('message').textContent=`${Math.floor(flight.x)} meter norrut${flight.mode==='practice'?' · inga föremål eller mynt förbrukades.':` · +${result.reward} skrotmynt.${result.crate?' Ny verkstadslåda!':''}${result.recovered?' Ett bus återvanns!':''}`}`;el('launch').textContent='En flygning till ↗';render();}}}
  el('distance').textContent=`${Math.floor(flight.x)} m`;
  const compass=flight.sabotage==='compass'&&flight.time<20&&phase==='flying';
  el('altitude').textContent=`${phase!=='flying'&&!flight.settled?0:Math.floor(compass?flight.y+Math.sin(flight.time*4)*45:flight.y)} m${compass?' ?':''}`;
@@ -61,7 +64,9 @@ function tick(delta:number){
  el('place').textContent=[...landmarks].reverse().find(l=>l.x<=flight.x)!.name;
  (el('fuel') as HTMLMeterElement).value=activeVehicle.levels.engine>0?flight.fuel/flight.maxFuel*100:0;
  (el('boost') as HTMLMeterElement).value=flight.maxBoost>0?flight.boost/flight.maxBoost*100:0;
- el('flight-advice').textContent=phase==='flying'?(flight.stalled?'STALL · sänk nosen och bygg fart':save.levels.wings===0&&save.levels.engine===0&&save.levels.rockets===0?'Rampstart · installera en glidvinge, motor eller raket i verkstaden':`Nosvinkel ${Math.round(flight.angle*180/Math.PI)}°`):'';
+ el('flight-advice').textContent=phase==='flying'?(flight.stalled?'STALL · sänk nosen och bygg fart':save.levels.wings===0&&save.levels.engine===0&&save.levels.rockets===0?'Rampstart · installera en glidvinge, motor eller raket i verkstaden':'Dyk för fart · ta upp mjukt och behåll energin'):'';
+ routeHud.update(flight.x);
+ instruments.update(flight,activeVehicle,phase==='flying');
  el('run-tag').textContent=flight.mode==='practice'?'PROVFLYGNING · UTAN BELÖNINGAR':flight.mode==='friends'?'LOKALT KOMPISLÄGE':'ENSAMPILOT · UTAN SABOTAGE';
 }
 new Phaser.Game({type:Phaser.AUTO,parent:'game',backgroundColor:'#91b9cd',scale:{mode:Phaser.Scale.RESIZE,width:'100%',height:'100%'},scene:createJourney(()=>({flight,save:activeVehicle,controls,flying:phase==='flying',phase,paused:!shell.canSimulate(),reduced:shell.reducedMotion(),tick})),render:{antialias:true},audio:{noAudio:true}});
