@@ -2,3 +2,4 @@
 
 .research-tree{position:relative;gap:28px;min-width:740px}.research-tree article{position:relative;z-index:1}.research-links{position:absolute;inset:0;pointer-events:none;overflow:visible;z-index:0}#progression:has(.research-tree){display:block;overflow:auto}
 #progression h3{color:#f7efd7;font-size:20px;line-height:1.2;margin:0 0 12px}#progression article p{font-size:14px;color:#d6e1dc}#progression button{font-size:13px;min-height:42px}#progression button:not(:disabled){background:#f2e6bf;color:#263d3d}#progression button:disabled{background:#607174;color:#dce2d9;opacity:.65}.service-nav button{font-size:14px}.service-nav button:focus,.service-nav button[aria-pressed=true]{color:#ffe5a2;background:#355b53;border-color:#b99d59}.research-tree{margin-top:24px}#progression .research-tree article p{font-size:12px}
+#garage-menu .service-nav button:focus,#garage-menu .service-nav button:hover{background:#355b53;color:#ffe5a2;border-color:#b99d59}

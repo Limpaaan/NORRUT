@@ -62,3 +62,7 @@ create function public.scrap_buy(offer_id text) returns text language sql securi
 create function public.scrap_search(category text) returns text language sql security invoker set search_path='' as $$select norrut_private.scrap_action(null,category)$$;
 revoke all on function public.scrap_stock(),public.scrap_buy(text),public.scrap_search(text) from public,anon;
 grant execute on function public.scrap_stock(),public.scrap_buy(text),public.scrap_search(text) to authenticated;
+create index scrap_offers_window_idx on public.scrap_offers(window_id);
+create index scrap_offers_sold_to_idx on public.scrap_offers(sold_to);
+create policy scrap_no_direct_read on public.scrap_offers for select to authenticated using(false);
+create policy catalog_no_direct_read on norrut_private.product_catalog for select to authenticated using(false);
