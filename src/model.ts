@@ -1,10 +1,10 @@
 export const upgrades = [
- {id:'engine',name:'Motor',description:'+2,4 dragkraft per nivå. Från skrotmotor till jet.',icon:'↗',base:40,max:20},
- {id:'tank',name:'Bränsletank',description:'+2,5 sekunders motortid per nivå.',icon:'◒',base:40,max:20},
- {id:'wings',name:'Vingar',description:'Mer lyft och mindre luftmotstånd.',icon:'⌁',base:40,max:20},
+ {id:'engine',name:'Motor',description:'Första köpet installerar en motor. Håll ↑ / W för dragkraft.',icon:'↗',base:40,max:20},
+ {id:'tank',name:'Bränsletank',description:'+1,5 sekunders motortid per nivå.',icon:'◒',base:40,max:20},
+ {id:'wings',name:'Glidvinge',description:'Första köpet ger riktig glidflykt. Rätt anfallsvinkel bevarar farten.',icon:'⌁',base:40,max:20},
  {id:'chassis',name:'Lättviktschassi',description:'Minskar vikten med 2 % per nivå.',icon:'◇',base:65,max:15},
  {id:'ramp',name:'Startramp',description:'+2 m/s i startfart per nivå.',icon:'∠',base:55,max:15},
- {id:'rockets',name:'Raketpaket',description:'+0,4 s boost och +2 boostkraft per nivå.',icon:'✦',base:80,max:15,requires:'engine',required:2},
+ {id:'rockets',name:'Raketpaket',description:'Första köpet installerar en raket. Fler nivåer ger längre och starkare boost.',icon:'✦',base:65,max:15},
  {id:'efficiency',name:'Bränsleinsprutning',description:'2,5 % lägre förbrukning per nivå.',icon:'◴',base:65,max:15,requires:'tank',required:2},
  {id:'steering',name:'Styrkalibrering',description:'Snabbare styrning. Kortare omvänd styrning.',icon:'⌖',base:70,max:10,requires:'wings',required:2},
  {id:'reserve',name:'Reservmotor',description:'Mildrar tappad raket och motorhosta.',icon:'⚙',base:95,max:10,requires:'engine',required:3},
@@ -56,9 +56,10 @@ export function openCrate(s:Save,rng=Math.random){if(s.crates<1)return null;s.cr
 export function sendBus(from:Save,to:Save,id:SabotageId,senderId:string,senderName:string,anonymous:boolean,now=Date.now()){
  if(to.pending&&to.pending.expires>now)return 'Piloten har redan ett väntande bus.';if(to.received.filter(n=>n>now-7*86400000).length>=2)return 'Piloten har redan fått två bus den senaste veckan.';
  if(from.bus[id]<1||from.tickets<1)return 'Du behöver ett busföremål och en busbiljett.';if(anonymous&&from.coins<50)return 'Anonymitet kostar 50 skrotmynt.';from.bus[id]--;from.tickets--;if(anonymous)from.coins-=50;to.pending={id,senderId,senderName,anonymous,expires:now+7*86400000};return null;}
-export interface Flight {x:number;y:number;vx:number;vy:number;angle:number;fuel:number;maxFuel:number;boost:number;maxBoost:number;time:number;mode:Mode;boosterIds:BoosterId[];sabotage:SabotageId|null;blocked:boolean;sender:Pending|null;settled:boolean;seed:number}
+export interface Flight {x:number;y:number;vx:number;vy:number;angle:number;fuel:number;maxFuel:number;boost:number;maxBoost:number;time:number;mode:Mode;boosterIds:BoosterId[];sabotage:SabotageId|null;blocked:boolean;sender:Pending|null;settled:boolean;seed:number;stalled:boolean}
 export interface Controls {left:boolean;right:boolean;thrust:boolean;boost:boolean}
-export function launch(s:Save,chosen:BoosterId[]=[],mode:Mode='solo',sabotage:SabotageId|null=null):Flight {const fuel=(12+s.levels.tank*2.5)*(chosen.includes('fuel')?1.3:1),boost=3+s.levels.rockets*.4+(chosen.includes('nitro')?2:0);return {x:0,y:3,vx:23+s.levels.ramp*2,vy:22+s.levels.ramp*.5,angle:.58,fuel,maxFuel:fuel,boost,maxBoost:boost,time:0,mode,boosterIds:[...chosen],sabotage,blocked:false,sender:null,settled:false,seed:1};}
+export function launch(s:Save,chosen:BoosterId[]=[],mode:Mode='solo',sabotage:SabotageId|null=null):Flight {const fuel=(3+s.levels.tank*1.5)*(chosen.includes('fuel')?1.3:1),boost=(s.levels.rockets>0?2+s.levels.rockets*.2:0)+(chosen.includes('nitro')?2:0);return {x:0,y:2,vx:19+s.levels.ramp*2,vy:10+s.levels.ramp*.5,angle:.4,fuel,maxFuel:fuel,boost,maxBoost:boost,time:0,mode,boosterIds:[...chosen],sabotage,blocked:false,sender:null,settled:false,seed:1,stalled:false};}
+export function practiceVehicle(s:Save):Save{return {...s,levels:{...s.levels,wings:Math.max(1,s.levels.wings),engine:Math.max(1,s.levels.engine),rockets:Math.max(1,s.levels.rockets)}};}
 export function lockRun(s:Save,chosen:BoosterId[],mode:Mode,practiceBus:SabotageId|null=null,rng=Math.random,now=Date.now()):Flight|null {
  const ids=[...new Set(chosen)];if(ids.length>3||ids.some(id=>!boosters.some(b=>b.id===id)||(mode!=='practice'&&s.inventory[id]<1)))return null;let pending:Pending|null=null;
  if(mode==='friends'&&s.pending){if(s.pending.expires>now&&s.received.filter(n=>n>now-7*86400000).length<2)pending=s.pending;s.pending=null;}
@@ -66,5 +67,24 @@ export function lockRun(s:Save,chosen:BoosterId[],mode:Mode,practiceBus:Sabotage
  if(pending){s.received=s.received.filter(n=>n>now-7*86400000);s.received.push(now);if(rng()<s.levels.lock*.05){f.blocked=true;f.sabotage=null;}}
  if(f.sabotage==='krylbo')f.sabotage=sabotages[Math.min(10,Math.floor(rng()*11))].id;return f;}
 export function modifiers(f:Flight,s:Save){const b=f.sabotage,def=s.levels.cargo*.08,reserve=s.levels.reserve*.07;return {mass:(1-s.levels.chassis*.02)*(f.boosterIds.includes('light')?.85:1)*(b==='weight'?1+.2*(1-def):1),drag:(b==='horse'?1+.35*(1-def):1)*(b==='parachute'&&f.time>3?2.8:1),motor:(f.boosterIds.includes('turbo')?1.2:1)*(b==='cough'&&f.time%4<1?.25+reserve*.75:1),boost:b==='rocket'?.5+reserve*.5:1,consumption:(1-s.levels.efficiency*.025)*(b==='leak'?1.15:1),lift:f.boosterIds.includes('lift')?1.2:1,inverted:b==='reverse'&&f.time<10*(1-s.levels.steering*.06),wind:b==='wind'?4:b==='magnet'?2+Math.sin(f.time*3+f.seed)*2:0};}
-export function step(f:Flight,c:Controls,s:Save,dt:number){f.time+=dt;const m=modifiers(f,s);f.angle=Math.max(-.65,Math.min(1.35,f.angle+(Number(c.right)-Number(c.left))*(m.inverted?-1:1)*(1.3+s.levels.steering*.04)*dt));const motor=c.thrust&&f.fuel>0,boost=c.boost&&f.boost>0;if(motor)f.fuel=Math.max(0,f.fuel-dt*m.consumption);if(boost)f.boost=Math.max(0,f.boost-dt);const thrust=((motor?(14+s.levels.engine*2.4)*m.motor:0)+(boost?(25+s.levels.rockets*2)*m.boost:0))/m.mass,drag=.011/(1+s.levels.wings*.09)*m.drag;f.vx+=(Math.cos(f.angle)*thrust-drag*f.vx*Math.abs(f.vx)-m.wind)*dt;f.vy+=(Math.sin(f.angle)*thrust-9.81+Math.min(8.5,f.vx*f.vx*.003*(1+s.levels.wings*.1)*m.lift/m.mass)-.07*f.vy)*dt;f.x+=Math.max(0,f.vx)*dt;f.y+=f.vy*dt;}
+export function aerodynamics(f:Flight,s:Save){
+ const speed=Math.max(.01,Math.hypot(f.vx,f.vy)),path=Math.atan2(f.vy,f.vx),aoa=Math.atan2(Math.sin(f.angle-path),Math.cos(f.angle-path));
+ const stalled=s.levels.wings>0&&(Math.abs(aoa)>.32||speed<8);
+ const cl=Math.max(-1,Math.min(1.45,.22+4.8*aoa))*(stalled?Math.max(.12,1-(Math.abs(aoa)-.32)*2.5):1);
+ const area=s.levels.wings>0?.052+s.levels.wings*.004:.0005;
+ const m=modifiers(f,s),lift=area*speed*speed*cl*m.lift/m.mass;
+ const cd=.028+.065*cl*cl+(stalled?Math.max(0,Math.abs(aoa)-.32)*.65:0);
+ const drag=(.0028/(1+s.levels.wings*.03)+area*cd)*speed*speed*m.drag/m.mass;
+ return {speed,path,aoa,stalled,lift,drag};
+}
+export function step(f:Flight,c:Controls,s:Save,dt:number){
+ f.time+=dt;const m=modifiers(f,s);f.angle=Math.max(-.65,Math.min(1.35,f.angle+(Number(c.right)-Number(c.left))*(m.inverted?-1:1)*(1.3+s.levels.steering*.04)*dt));
+ const motor=c.thrust&&f.fuel>0&&s.levels.engine>0,boost=c.boost&&f.boost>0;if(motor)f.fuel=Math.max(0,f.fuel-dt*m.consumption);if(boost)f.boost=Math.max(0,f.boost-dt);
+ const thrust=((motor?(12+s.levels.engine*1.8)*m.motor:0)+(boost?(20+s.levels.rockets*1.5)*m.boost:0))/m.mass;
+ const a=aerodynamics(f,s);f.stalled=a.stalled;const ux=f.vx/a.speed,uy=f.vy/a.speed;
+ // Lift is perpendicular to motion, drag opposes it: changing pitch cannot add free energy.
+ f.vx=Math.max(0,f.vx+(Math.cos(f.angle)*thrust-a.drag*ux-a.lift*uy-m.wind)*dt);
+ f.vy+=(Math.sin(f.angle)*thrust-9.81-a.drag*uy+a.lift*ux)*dt;
+ f.x+=f.vx*dt;f.y+=f.vy*dt;
+}
 export function settle(s:Save,f:Flight,rng=Math.random){if(f.settled)return {soft:false,reward:0,crate:false,recovered:false};f.settled=true;const soft=f.y<=0&&Math.abs(f.vy)<10&&Math.abs(f.angle)<.4,reward=f.mode==='practice'?0:15+Math.floor(f.x/8)+(soft?20:0);let crate=false,recovered=false;if(f.mode!=='practice'){s.coins+=reward;s.runs++;if(f.mode==='solo')s.best=Math.max(s.best,Math.floor(f.x));else s.busBest=Math.max(s.busBest,Math.floor(f.x));if(s.runs%5===0){s.crates++;crate=true;}if(s.runs%10===0)s.tickets=Math.min(3,s.tickets+1);if(f.sender&&s.levels.return>0&&busCount(s)<5&&rng()<s.levels.return*.1){s.bus[f.sender.id]++;recovered=true;}s.history.push(`${Math.floor(f.x)} m · +${reward} skrot · ${f.sabotage?sabotages.find(b=>b.id===f.sabotage)!.name:f.blocked?'Bus stoppat':'Ingen störning'}`);s.history=s.history.slice(-12);}return {soft,reward,crate,recovered};}
