@@ -19,7 +19,7 @@ begin
  return v;
 end;$$;
 create function norrut_private.scrap_action(offer_id text,category text) returns text language plpgsql security definer set search_path='' as $$
-declare d jsonb;g jsonb;o record;p record;item jsonb;cap integer;balance numeric;roll float;q integer;message text;arr text[];
+declare d jsonb;g jsonb;o record;p record;item jsonb;cap integer;balance numeric;search_cost numeric;roll float;q integer;message text;arr text[];
 begin
  if auth.uid() is null then raise exception 'Logga in först';end if;
  select data into d from public.player_saves where user_id=auth.uid() for update;
@@ -38,11 +38,12 @@ begin
  message:='Delen finns nu under Montering.';
  else
  if category not in ('drive','aero') then raise exception 'Ogiltig kategori';end if;
- if balance<10 then raise exception 'För lite pengar';end if;balance:=balance-10;
+ 
  arr:=case when category='drive' then array['engine','rockets','tank'] else array['wings','chassis','tail','nose'] end;
  select coalesce(max(c.tier),0)+1 into cap from jsonb_array_elements(g->'items') a join norrut_private.product_catalog c on c.id=a->>'product' where c.slot=any(arr) and a->>'id'=g->'mounted'->>c.slot;
+ search_cost:=10*power(7::numeric,greatest(0,cap-2));if balance<search_cost then raise exception 'För lite pengar';end if;balance:=balance-search_cost;
  roll:=random();message:='Ingenting den här gången.';
- if roll>=.75 and roll<.94 then balance:=balance+2+floor(random()*7);message:='Du hittade några skrotmynt.';
+ if roll>=.75 and roll<.94 then balance:=balance+(2+floor(random()*7))*search_cost/10;message:='Du hittade några skrotmynt.';
  elsif roll>=.94 and roll<.95 then g:=jsonb_set(g,'{premium}',to_jsonb(coalesce((g->>'premium')::int,0)+1));message:='Du hittade 1 premium!';
  elsif roll>=.95 and random()<1.0/greatest(1,cap) then
  select c.* into p from norrut_private.product_catalog c where c.slot=any(arr) and c.tier<=least(15,cap) and c.tier<=1+coalesce((select max(c2.tier) from jsonb_array_elements(g->'items') a join norrut_private.product_catalog c2 on c2.id=a->>'product' where a->>'id'=g->'mounted'->>c.slot),0) order by random() limit 1;
