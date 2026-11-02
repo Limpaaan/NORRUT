@@ -5,3 +5,5 @@
 #garage-menu .service-nav button:focus,#garage-menu .service-nav button:hover{background:#355b53;color:#ffe5a2;border-color:#b99d59}
 
 .leaderboard-table{grid-column:1/-1;width:100%;border-collapse:collapse;color:#284b47;font-size:15px}.leaderboard-table th,.leaderboard-table td{padding:14px 12px;border-bottom:1px solid #aeb7a0;text-align:left}.leaderboard-table th{background:#d9dfc8}.leaderboard-table tbody tr:nth-child(odd){background:#e5e3ce}.leaderboard-table td:nth-child(3){font-variant-numeric:tabular-nums;font-weight:bold}
+
+.route-preview{aspect-ratio:2/1;border-radius:7px;background-size:200% 400%;background-repeat:no-repeat;margin-bottom:14px;border:1px solid #bdb18755}
