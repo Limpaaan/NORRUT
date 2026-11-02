@@ -34,7 +34,7 @@ export function createJourney(state:()=>State){return class Journey extends Phas
  const w=this.scale.width,h=this.scale.height,ground=h*.835,px=Math.max(2.5,Math.min(4.5,w/350)),home=w*.265,cam=Math.max(0,f.x*px-w*.14),rise=Math.max(0,f.y*px-h*.38),artScale=Math.max(w/1672,h/941);
  this.background.setSize(w,h);this.background.setTileScale(artScale);this.background.tilePositionX=(Math.max(0,1672*artScale-w)*.4+cam*.14)/artScale;this.background.tilePositionY=-Math.min(h*.35,rise*.13)/artScale;this.background.setAlpha(Math.max(.05,1-rise/(h*2.5)));
  this.road.setPosition(0,ground+rise).setSize(w,h*.3).setTileScale(artScale);this.road.tilePositionX=cam/artScale;
- this.leaves.setDisplaySize(1672*artScale*1.025,941*artScale*1.025).setPosition(-w*.01-cam*.13,Math.min(h,rise*.65)).setAlpha(h>w?.8:1);this.leaves.rotation=reduced?0:Math.sin(this.elapsed*.55)*.0018;
+ this.leaves.setDisplaySize(1672*artScale*1.025,941*artScale*1.025).setPosition(-w*.01-cam*.13,Math.min(h,rise*.65)).setVisible(w>=h);this.leaves.rotation=reduced?0:Math.sin(this.elapsed*.55)*.0018;
  const m=modifiers(f,s),throttle=flying&&c.thrust&&f.fuel>0&&s.levels.engine>0,boost=flying&&c.boost&&f.boost>0;
  const a=flightAnimation({phase,time:this.elapsed,speed:Math.hypot(f.vx,f.vy),throttle:throttle||phase==='countdown'&&s.levels.engine>0,boost,landedAgo:this.elapsed-this.landingAt,reduced});
  const craftScale=Math.max(.48,Math.min(1.25,w/1350,h/640)),sx=home+f.x*px-cam,sy=ground-f.y*px+rise-105*craftScale;
