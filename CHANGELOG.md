@@ -2,6 +2,8 @@
 
 Spelet fyller nu webbläsarfönstret utan sidskrollning. Verkstad, utrustning, inställningar och paus öppnas som egna menyer inne i spelet. Knappen Starta försöker aktivera webbläsarens helskärm; där API:t inte stöds används hela flikens yta. En särskild helskärmsknapp finns också.
 
+Mobil kräver liggande läge. Stående telefoner får en blockerande Vänd telefonen-skärm som inte kan stängas utan att skärmen blir liggande. Flygningen pausar under tiden. I helskärm försöker spelet dessutom låsa orienteringen till landskap när webbläsaren stöder det.
+
 Ny målad miljöbild och separata frilagda farkostdelar har skapats utifrån användarens faktiska bild 2. Se ART-DIRECTION.md för bildfiler och slutprompter. Delarna animeras oberoende: pilot, halsduk, propeller, hjul, vinge, motorrök, boost och landningsfjädring. Vingseglet monteras visuellt först efter köp av glidvingen. Lövverk och vattenreflexer rör sig. Minskad dekorativ rörelse kan väljas i inställningarna.
 
 Fysiken använder nu fart relativt nosvinkel, lyft vinkelrätt mot rörelsen, motstånd och stall. Pitchändring utan motor kan inte tillföra fri energi. Grundfordonet saknar motordrift, glidvinge och raket. Första köpet av respektive komponent låser upp dess funktion direkt. Simulerade exempel med samma rampstart: grundfordon cirka 40 m; första glidvingen cirka 119 m med en låg vinkel men cirka 21 m med kraftigt uppdragen nos. Resultaten beror på styrning, boosters och sabotage och är inte garanterade räckvidder.
