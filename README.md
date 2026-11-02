@@ -4,7 +4,7 @@ Spelbart webbspelsutkast i TypeScript och Phaser 3. Starta på Östbergs parkeri
 
 ## Spela och utveckla
 
-Installera Node.js 24 med npm. Kör `npm ci` och `npm run dev`. För produktion: `npm run build`. `dist/` kan publiceras hos en statisk webbvärd. `npm test` kör 19 tester för fysik, ekonomi, sparformat och tangentinställningar.
+Installera Node.js 24 med npm. Kör `npm ci` och `npm run dev`. För produktion: `npm run build`. `dist/` kan publiceras hos en statisk webbvärd. `npm test` kör 20 tester för fysik, ekonomi, sparformat och tangentinställningar.
 
 Pilar eller WASD styr: vänster/A sänker nosen, höger/D höjer nosen, upp/W driver motorn och ned/S eller mellanslag ger boost. Öppna Tangentinställningar för att ändra tangenter. Mobilen har hållknappar.
 
@@ -26,4 +26,5 @@ Se [GITHUB.md](GITHUB.md). Arbetsflödet `.github/workflows/pages.yml` bygger oc
 `src/model.ts` innehåller fysik och ekonomi, `main.ts` spelgränssnitt, `journey.ts` Phaser-scen, `art.ts` originalgrafik, `hotkeys.ts` tangentinställningar, `storage.ts` lokal lagring och `accounts.ts` den förberedda kontoklienten. `supabase/001_accounts.sql` är ett ännu inte tillämpat schemaförslag. `contracts.ts` beskriver framtida gränssnitt för progression, rundverifiering och sociala funktioner.
 
 Landmärkenas ordning och avstånd är spelplatshållare, inte verklig nordlig geografi. Grafiken följer textbeskrivningen av nordisk indiestil; originalbilderna saknades. Alla tolv sabotageeffekter och lokala kompisprofiler är spelbara. Vänner mellan enheter, forskning, prestige, chatt, rum, globala topplistor och adminvy är inte implementerade. Se CHANGELOG.md för regler, ekonomi och begränsningar. Klientens ekonomi är inte fuskresistent.
+
 

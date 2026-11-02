@@ -18,8 +18,9 @@ Verkstadslådor fås var femte ordinarie runda. Varje låda ger en booster och h
 
 ## Sparningar och begränsningar
 
-Sparfil version 1 migreras till version 2 utan att mynt, rekord eller befintliga komponentnivåer förloras. Sparfilens ursprungliga lagringsnyckel behålls. Nya lokala piloter har separata förråd och framsteg.
+En flygrunda varar högst tre minuter; en farkost som ännu flyger bärgas utan landningsbonus. Sparfil version 1 migreras till version 2 utan att mynt, rekord eller befintliga komponentnivåer förloras. Sparfilens ursprungliga lagringsnyckel behålls. Nya lokala piloter har separata förråd och framsteg.
 
 Lokalt kompisläge är inte kontobaserat nätverksspel. Riktiga vänner, anonyma serverlagrade bus och synkning mellan enheter kräver fortfarande en konfigurerad backend. Lokala sparfiler och hemligheter kan granskas i webbläsaren och är inte fuskresistenta. Supabase är fortfarande avstängt. Forskningssystem, prestige, globala topplistor, rum och chatt ingår inte i 0.2.
 
-Verifiering: produktionsbygge och 19 automatiska tester för ekonomi, flygfysik, sabotage, migration och rundlåsning.
+Verifiering: produktionsbygge och 20 automatiska tester för ekonomi, flygfysik, sabotage, migration och rundlåsning.
+
