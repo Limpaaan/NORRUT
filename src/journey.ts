@@ -1,3 +1,4 @@
+import {mounted,product,tier} from './equipment';
 import Phaser from 'phaser';
 import {modifiers,type Flight,type Save,type Controls} from './model';
 import {flightAnimation,type AnimationPhase} from './animation';
@@ -6,7 +7,7 @@ interface State {flight:Flight;save:Save;controls:Controls;flying:boolean;phase:
 interface Puff {x:number;y:number;life:number;kind:'smoke'|'dust'}
 export function createJourney(state:()=>State){return class Journey extends Phaser.Scene {
  background!:Phaser.GameObjects.TileSprite;road!:Phaser.GameObjects.TileSprite;leaves!:Phaser.GameObjects.Image;shadow!:Phaser.GameObjects.Ellipse;
- g!:Phaser.GameObjects.Graphics;fx!:Phaser.GameObjects.Graphics;cloth!:Phaser.GameObjects.Graphics;plane!:Phaser.GameObjects.Container;
+ g!:Phaser.GameObjects.Graphics;fx!:Phaser.GameObjects.Graphics;cloth!:Phaser.GameObjects.Graphics;partsOverlay!:Phaser.GameObjects.Graphics;plane!:Phaser.GameObjects.Container;
  wing!:Phaser.GameObjects.Image;pilot!:Phaser.GameObjects.Image;prop!:Phaser.GameObjects.Image;rear!:Phaser.GameObjects.Image;front!:Phaser.GameObjects.Image;
  sign!:Phaser.GameObjects.Text;elapsed=0;rotor=0;wheel=0;landingAt=-100;lastFlight:Flight|null=null;wasSettled=false;emit=0;smoke:Puff[]=[];
  preload(){this.load.on('progress',(value:number)=>{const loader=document.getElementById('asset-loading');if(loader)loader.textContent=`Verkstaden vaknar… ${Math.round(value*100)} %`;});for(const name of ['landscape','parts','foliage'])this.load.image(name,'art/'+name+'.webp');}
@@ -23,7 +24,7 @@ export function createJourney(state:()=>State){return class Journey extends Phas
  const chassis=this.add.image(0,0,'parts','lower').setOrigin(.5,.38).setDisplaySize(340,120.89);
  this.cloth=this.add.graphics();this.rear=this.add.image(-99,80,'parts','wheel').setDisplaySize(53,52);this.front=this.add.image(125,80,'parts','wheel').setDisplaySize(45,44);
  this.prop=this.add.image(-157,10,'parts','propeller').setDisplaySize(20,90);
- this.plane.add([this.wing,this.cloth,this.pilot,chassis,this.rear,this.front,this.prop]);
+ this.partsOverlay=this.add.graphics();this.plane.add([this.wing,this.cloth,this.pilot,chassis,this.rear,this.front,this.prop,this.partsOverlay]);
  this.leaves=this.add.image(0,0,'foliage').setOrigin(0).setDepth(7);
  this.sign=this.add.text(0,0,'P\nÖstbergs\nparkering\nAvesta',{fontFamily:'Arial',fontSize:'14px',fontStyle:'bold',color:'#f9f4df',backgroundColor:'#274c67',align:'center',padding:{x:10,y:10},stroke:'#23405a',strokeThickness:1}).setDepth(4);
  }
@@ -40,7 +41,8 @@ export function createJourney(state:()=>State){return class Journey extends Phas
  const craftScale=Math.max(.48,Math.min(1.25,w/1350,h/640)),sx=home+f.x*px-cam,sy=ground-f.y*px+rise-105*craftScale;
  this.plane.setPosition(sx+(throttle&&!reduced?Math.sin(this.elapsed*55)*.5:0),sy+a.bodyBob*craftScale).setScale(craftScale).setRotation(flying?-f.angle:f.settled?-.015:-.08);
  this.wing.setVisible(s.levels.wings>0).setScale(340/900,113.33/300*a.wingFlex);this.pilot.y=9+a.pilotBob;this.pilot.rotation=a.pilotAngle;
- if(!paused){this.rotor+=a.propellerRate*dt;this.wheel+=a.wheelRate*dt;}this.prop.setVisible(s.levels.engine>0);this.prop.setDisplaySize(18,90*Math.max(.12,Math.abs(Math.cos(this.rotor))));this.rear.rotation=this.wheel;this.front.rotation=this.wheel*1.18;this.rear.setScale(53/470,52/460*a.wheelSquash);this.front.setScale(45/470,44/460*a.wheelSquash);
+ if(!paused){this.rotor+=a.propellerRate*dt;this.wheel+=a.wheelRate*dt;}this.prop.setVisible(s.levels.engine>0&&(!s.gear||tier(s.gear,'engine')<9));this.prop.setDisplaySize(18,90*Math.max(.12,Math.abs(Math.cos(this.rotor))));this.rear.rotation=this.wheel;this.front.rotation=this.wheel*1.18;this.rear.setScale(53/470,52/460*a.wheelSquash);this.front.setScale(45/470,44/460*a.wheelSquash);
+ const pg=this.partsOverlay;pg.clear();if(s.gear){const gear=s.gear;const color=(slot:any)=>{const p=mounted(gear,slot);return p?[0x77533a,0x92806a,0xa59678,0xa9b2a3,0xc9d3cb,0x9ccbd0,0xefc66a][p.condition]:0x8d806a;};const et=tier(gear,'engine'),wt=tier(gear,'wings'),bt=tier(gear,'chassis'),tt=tier(gear,'tank'),tail=tier(gear,'tail'),nt=tier(gear,'nose'),rt=tier(gear,'rockets');this.wing.setTint(color('wings'));this.wing.setScale((340+wt*3)/900,113.33/300*a.wingFlex);if(bt){pg.fillStyle(color('chassis'),.8);pg.fillRoundedRect(-35,25,115+bt*2,36,5);pg.lineStyle(2,0x4c4e43);pg.strokeRoundedRect(-35,25,115+bt*2,36,5);}if(et){pg.fillStyle(color('engine'));pg.fillRoundedRect(-139,-2,26+et*2,27+et,4);pg.lineStyle(2,0x333c3f);for(let i=0;i<Math.min(8,et);i++)pg.lineBetween(-134+i*5,1,-134+i*5,24);if(et>=9){pg.fillStyle(et>=14?0x62cdeb:0xa8b8b5);pg.fillTriangle(116,-3,150+et,24,116,48);}}if(tt){pg.fillStyle(color('tank'));pg.fillRoundedRect(-60,15,20+tt*2,25,4);pg.lineStyle(3,0x6b4b34);pg.lineBetween(-53,15,-53,40);}if(tail){pg.fillStyle(color('tail'));pg.fillTriangle(-110,32,-125-tail*2,-14-tail*3,-80,30);}if(nt){pg.fillStyle(color('nose'));if(et<9)pg.fillEllipse(-151,11,12+nt,22+nt*3);else pg.fillTriangle(120,-5-nt,158+nt*2,23,120,49+nt);}if(rt){pg.fillStyle(color('rockets'));for(let i=0;i<Math.min(3,Math.ceil(rt/5));i++)pg.fillRoundedRect(-80,55+i*13,48+rt*2,11,4);}}
  this.shadow.setPosition(sx+f.y*.15,ground+rise+1).setScale(craftScale*(1+f.y*.002),1).setAlpha(.25*Math.exp(-f.y/40));
  const cloth=this.cloth;cloth.clear();cloth.fillStyle(0xa94934);const ribbon:Phaser.Math.Vector2[]=[];for(let i=0;i<9;i++)ribbon.push(new Phaser.Math.Vector2(32-i*8,-47+Math.sin(this.elapsed*8-i*.8)*a.scarfAmplitude+i*.45));for(let i=8;i>=0;i--)ribbon.push(new Phaser.Math.Vector2(32-i*8,-40+Math.sin(this.elapsed*8-i*.8)*a.scarfAmplitude+i*.45));cloth.fillPoints(ribbon,true);
  const g=this.g;g.clear();const rampX=home-cam-155*craftScale,ry=ground+rise;

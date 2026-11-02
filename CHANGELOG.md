@@ -38,3 +38,10 @@ Lokalt kompisläge är inte kontobaserat nätverksspel. Riktiga vänner, anonyma
 
 Verifiering: produktionsbygge och 20 automatiska tester för ekonomi, flygfysik, sabotage, migration och rundlåsning.
 
+
+## 0.4.0
+- 105 namngivna produkter, sju kategorier och sju skick.
+- Separat butik, verkstad, montering, gemensamt skrot och förgrenad forskning.
+- Transaktionella Supabase-köp, serverbestämt lager och sökning.
+- Produktbaserade flygegenskaper, monterade visuella komponenter och engångsbooster.
+- Bevarad sparning och 32 automatiska tester.

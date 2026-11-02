@@ -1,3 +1,4 @@
+import {mounted,strength,catalog,syncGear,advanceResearch,type Gear} from './equipment.ts';
 export const upgrades = [
  {id:'engine',name:'Motor',description:'Första köpet installerar en motor. Håll ↑ / W för dragkraft.',icon:'↗',base:40,max:20},
  {id:'tank',name:'Bränsletank',description:'+1,5 sekunders motortid per nivå.',icon:'◒',base:40,max:20},
@@ -38,15 +39,15 @@ export const sabotages=[
 export type SabotageId=typeof sabotages[number]['id'];
 export type Mode='solo'|'friends'|'practice';
 export interface Pending {id:SabotageId;senderId:string;senderName:string;anonymous:boolean;expires:number}
-export interface Save {version:2;coins:number;best:number;busBest:number;runs:number;levels:Record<UpgradeId,number>;inventory:Record<BoosterId,number>;bus:Record<SabotageId,number>;tickets:number;crates:number;pending:Pending|null;received:number[];history:string[]}
+export interface Save {gear?:Gear;version:2;coins:number;best:number;busBest:number;runs:number;levels:Record<UpgradeId,number>;inventory:Record<BoosterId,number>;bus:Record<SabotageId,number>;tickets:number;crates:number;pending:Pending|null;received:number[];history:string[]}
 export const fresh=():Save=>({version:2,coins:0,best:0,busBest:0,runs:0,levels:Object.fromEntries(upgrades.map(u=>[u.id,0])) as Record<UpgradeId,number>,inventory:{fuel:1,turbo:1,lift:1,nitro:0,light:0},bus:Object.fromEntries(sabotages.map(s=>[s.id,0])) as Record<SabotageId,number>,tickets:1,crates:1,pending:null,received:[],history:[]});
 export function migrate(raw:unknown):Save {const s=fresh(),p=raw as Partial<Save>;if(!p||![1,2].includes(p.version as number))return s;
- for(const key of ['coins','best','busBest','runs','tickets','crates'] as const)if(Number.isSafeInteger(p[key])&&p[key]!>=0)s[key]=Math.min(1e12,p[key]!);
- for(const u of upgrades)if(Number.isInteger(p.levels?.[u.id]))s.levels[u.id]=Math.max(0,Math.min(u.max,p.levels![u.id]));
+ for(const key of ['coins','best','busBest','runs','tickets','crates'] as const)if(Number.isSafeInteger(p[key])&&p[key]!>=0)s[key]=Math.min(Number.MAX_SAFE_INTEGER,p[key]!);
+ for(const u of upgrades)if(Number.isFinite(p.levels?.[u.id]))s.levels[u.id]=Math.max(0,Math.min(u.max,p.levels![u.id]));
  for(const b of boosters){const n=p.inventory?.[b.id];if(Number.isSafeInteger(n)&&n!>=0)s.inventory[b.id]=Math.min(999,n!);}
  for(const b of sabotages){const n=p.bus?.[b.id];if(Number.isSafeInteger(n)&&n!>=0)s.bus[b.id]=Math.min(999,n!);}
  if(p.pending&&sabotages.some(b=>b.id===p.pending!.id)&&typeof p.pending.senderId==='string'&&typeof p.pending.senderName==='string'&&Number.isFinite(p.pending.expires))s.pending={...p.pending,senderName:p.pending.senderName.slice(0,24),anonymous:!!p.pending.anonymous};
- if(Array.isArray(p.received))s.received=p.received.filter(n=>Number.isFinite(n)).slice(-2);if(Array.isArray(p.history))s.history=p.history.filter(x=>typeof x==='string').map(x=>x.slice(0,200)).slice(-12);return s;}
+ if(Array.isArray(p.received))s.received=p.received.filter(n=>Number.isFinite(n)).slice(-2);if(Array.isArray(p.history))s.history=p.history.filter(x=>typeof x==='string').map(x=>x.slice(0,200)).slice(-12);if(p.gear&&Array.isArray(p.gear.items)){s.gear=structuredClone(p.gear);s.gear.items=s.gear.items.filter(x=>catalog.some(c=>c.id===x.product)&&Number.isInteger(x.condition)&&x.condition>=0&&x.condition<7&&Number.isInteger(x.level)&&x.level>=0&&x.level<=10);syncGear(s);}return s;}
 export const cost=(level:number,id:UpgradeId='engine')=>Math.floor(upgrades.find(u=>u.id===id)!.base*1.48**level);
 export function unlocked(s:Save,id:UpgradeId){const u=upgrades.find(u=>u.id===id)!;return !('requires' in u)||s.levels[u.requires]>=u.required;}
 export function buy(s:Save,id:UpgradeId){const u=upgrades.find(u=>u.id===id)!,price=cost(s.levels[id],id);if(!unlocked(s,id)||s.coins<price||s.levels[id]>=u.max)return false;s.coins-=price;s.levels[id]++;return true;}
@@ -66,7 +67,7 @@ export function lockRun(s:Save,chosen:BoosterId[],mode:Mode,practiceBus:Sabotage
  if(mode!=='practice')for(const id of ids)s.inventory[id]--;const f=launch(s,ids,mode,mode==='practice'?practiceBus:pending?.id||null);f.sender=pending;f.seed=Math.floor(rng()*1e8);
  if(pending){s.received=s.received.filter(n=>n>now-7*86400000);s.received.push(now);if(rng()<s.levels.lock*.05){f.blocked=true;f.sabotage=null;}}
  if(f.sabotage==='krylbo')f.sabotage=sabotages[Math.min(10,Math.floor(rng()*11))].id;return f;}
-export function modifiers(f:Flight,s:Save){const b=f.sabotage,def=s.levels.cargo*.08,reserve=s.levels.reserve*.07;return {mass:(1-s.levels.chassis*.02)*(f.boosterIds.includes('light')?.85:1)*(b==='weight'?1+.2*(1-def):1),drag:(b==='horse'?1+.35*(1-def):1)*(b==='parachute'&&f.time>3?2.8:1),motor:(f.boosterIds.includes('turbo')?1.2:1)*(b==='cough'&&f.time%4<1?.25+reserve*.75:1),boost:b==='rocket'?.5+reserve*.5:1,consumption:(1-s.levels.efficiency*.025)*(b==='leak'?1.15:1),lift:f.boosterIds.includes('lift')?1.2:1,inverted:b==='reverse'&&f.time<10*(1-s.levels.steering*.06),wind:b==='wind'?4:b==='magnet'?2+Math.sin(f.time*3+f.seed)*2:0};}
+export function modifiers(f:Flight,s:Save){const g=s.gear,engine=g&&mounted(g,'engine'),wing=g&&mounted(g,'wings'),done=g?.research.done||[],parts=g?g.items.filter(p=>Object.values(g.mounted).includes(p.id)):[],hobby=parts.filter(p=>p.mod==='hobby').length,overclock=parts.filter(p=>p.mod==='overclock').length,tier=engine?catalog.find(p=>p.id===engine.product)!.tier:0;const b=f.sabotage,def=s.levels.cargo*.08,reserve=s.levels.reserve*.07;return {mass:(tier===5?1.35:tier===4?1.15:1)*.9**hobby*(1-s.levels.chassis*.02)*(f.boosterIds.includes('light')?.85:1)*(b==='weight'?1+.2*(1-def):1),drag:(b==='horse'?1+.35*(1-def):1)*(b==='parachute'&&f.time>3?2.8:1),motor:(1+done.filter(x=>x.startsWith('engine-')||x==='integration').length*.03)*(f.boosterIds.includes('turbo')?1.2:1)*(b==='cough'&&f.time%4<1?.25+reserve*.75:1),boost:b==='rocket'?.5+reserve*.5:1,consumption:(tier===5?1.6:1)*1.2**overclock*(1-s.levels.efficiency*.025)*(b==='leak'?1.15:1),lift:(1+done.filter(x=>x.startsWith('wings-')||x==='integration').length*.03)*(f.boosterIds.includes('lift')?1.2:1),turn:.8**hobby,inverted:b==='reverse'&&f.time<10*(1-s.levels.steering*.06),wind:b==='wind'?4:b==='magnet'?2+Math.sin(f.time*3+f.seed)*2:0};}
 export function aerodynamics(f:Flight,s:Save){
  const speed=Math.max(.01,Math.hypot(f.vx,f.vy)),path=Math.atan2(f.vy,f.vx),aoa=Math.atan2(Math.sin(f.angle-path),Math.cos(f.angle-path));
  const stalled=s.levels.wings>0&&(Math.abs(aoa)>.32||speed<8);
@@ -78,13 +79,14 @@ export function aerodynamics(f:Flight,s:Save){
  return {speed,path,aoa,stalled,lift,drag};
 }
 export function step(f:Flight,c:Controls,s:Save,dt:number){
- f.time+=dt;const m=modifiers(f,s);f.angle=Math.max(-.65,Math.min(1.35,f.angle+(Number(c.right)-Number(c.left))*(m.inverted?-1:1)*(1.3+s.levels.steering*.04)*dt));
+ f.time+=dt;const m=modifiers(f,s);f.angle=Math.max(-.65,Math.min(1.35,f.angle+(Number(c.right)-Number(c.left))*(m.inverted?-1:1)*(1.3+s.levels.steering*.04)*m.turn*dt));
  const motor=c.thrust&&f.fuel>0&&s.levels.engine>0,boost=c.boost&&f.boost>0;if(motor)f.fuel=Math.max(0,f.fuel-dt*m.consumption);if(boost)f.boost=Math.max(0,f.boost-dt);
- const thrust=((motor?(12+s.levels.engine*1.8)*m.motor:0)+(boost?(20+s.levels.rockets*1.5)*m.boost:0))/m.mass;
+ const thrust=((motor?(s.gear&&mounted(s.gear,'engine')?13.8*strength(mounted(s.gear,'engine')!):(12+s.levels.engine*1.8))*m.motor:0)+(boost?(20+s.levels.rockets*1.5)*m.boost:0))/m.mass;
  const a=aerodynamics(f,s);f.stalled=a.stalled;const ux=f.vx/a.speed,uy=f.vy/a.speed;
  // Lift is perpendicular to motion, drag opposes it: changing pitch cannot add free energy.
  f.vx=Math.max(0,f.vx+(Math.cos(f.angle)*thrust-a.drag*ux-a.lift*uy-m.wind)*dt);
  f.vy+=(Math.sin(f.angle)*thrust-9.81-a.drag*uy+a.lift*ux)*dt;
  f.x+=f.vx*dt;f.y+=f.vy*dt;
 }
-export function settle(s:Save,f:Flight,rng=Math.random){if(f.settled)return {soft:false,reward:0,crate:false,recovered:false};f.settled=true;const soft=f.y<=0&&Math.abs(f.vy)<10&&Math.abs(f.angle)<.4,reward=f.mode==='practice'?0:15+Math.floor(f.x/8)+(soft?20:0);let crate=false,recovered=false;if(f.mode!=='practice'){s.coins+=reward;s.runs++;if(f.mode==='solo')s.best=Math.max(s.best,Math.floor(f.x));else s.busBest=Math.max(s.busBest,Math.floor(f.x));if(s.runs%5===0){s.crates++;crate=true;}if(s.runs%10===0)s.tickets=Math.min(3,s.tickets+1);if(f.sender&&s.levels.return>0&&busCount(s)<5&&rng()<s.levels.return*.1){s.bus[f.sender.id]++;recovered=true;}s.history.push(`${Math.floor(f.x)} m · +${reward} skrot · ${f.sabotage?sabotages.find(b=>b.id===f.sabotage)!.name:f.blocked?'Bus stoppat':'Ingen störning'}`);s.history=s.history.slice(-12);}return {soft,reward,crate,recovered};}
+export function settle(s:Save,f:Flight,rng=Math.random){if(f.settled)return {soft:false,reward:0,crate:false,recovered:false};f.settled=true;const soft=f.y<=0&&Math.abs(f.vy)<10&&Math.abs(f.angle)<.4,reward=f.mode==='practice'?0:Math.floor((15+Math.floor(f.x/8)+(soft?20:0))*Math.max(1,...(s.gear?s.gear.items.filter(p=>Object.values(s.gear!.mounted).includes(p.id)).map(p=>catalog.find(c=>c.id===p.product)!.price/100):[])));let crate=false,recovered=false;if(f.mode!=='practice'){if(s.gear)advanceResearch(s.gear,Math.floor(f.x));s.coins+=reward;s.runs++;if(f.mode==='solo')s.best=Math.max(s.best,Math.floor(f.x));else s.busBest=Math.max(s.busBest,Math.floor(f.x));if(s.runs%5===0){s.crates++;crate=true;}if(s.runs%10===0)s.tickets=Math.min(3,s.tickets+1);if(f.sender&&s.levels.return>0&&busCount(s)<5&&rng()<s.levels.return*.1){s.bus[f.sender.id]++;recovered=true;}s.history.push(`${Math.floor(f.x)} m · +${reward} skrot · ${f.sabotage?sabotages.find(b=>b.id===f.sabotage)!.name:f.blocked?'Bus stoppat':'Ingen störning'}`);s.history=s.history.slice(-12);}return {soft,reward,crate,recovered};}
+

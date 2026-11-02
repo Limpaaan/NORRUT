@@ -1,0 +1,28 @@
+export const slots=['engine','wings','tank','rockets','chassis','tail','nose'] as const;
+export type Slot=typeof slots[number];
+export const labels:Record<Slot,string>={engine:'Motorer',wings:'Vingar',tank:'Bränsletankar',rockets:'Temporära boosters',chassis:'Flygkroppar',tail:'Stjärtfenor',nose:'Fronter'};
+export const conditions=['Trasig','Sliten','Välanvänd','Duglig','Bra','Perfekt','Legendarisk'] as const;
+export const quality=[.3,.45,.6,.8,1,1.14,1.32];
+const engines=['Gräsklipparmotor','Mopedmotor','Motorcykelmotor','Bilmotor','V8-motor','Flygplansmotor','Stjärnmotor','Turbopropmotor','Jetmotor','Jetmotor med efterbrännkammare','Scramjetmotor','Raketmotor','Kärndriven raketmotor','Plasmamotor','Antimateriamotor'];
+const names:Record<Slot,string[]>={engine:engines,wings:['Tygvinge','Glidvinge i lättmetall','Förstärkt glidvinge','Sportvinge','Segelflygvinge','Aluminiumvinge','Laminärvinge','Kompositvinge','Pilvinge','Deltavinge','Hypersonisk vinge','Rymdplansvinge','Keramisk vinge','Plasmavinge','Gravitationsvinge'],tank:['Plastdunk','Mopeddunk','Ståltank','Biltank','Dubbeltank','Flygplanstank','Lättmetalltank','Integrerad vingtank','Jetbränsletank','Trycktank','Kryotank','Rakettank','Vätgastank','Plasmabehållare','Antimateriakapsel'],rockets:['Festballonger','Tryckluftsflaska','Nitropatron','Hobbyraket','Nitropaket','Raketbooster','Dubbelraket','Turbobooster','Jetbooster','Efterbrännare','Hypersonisk booster','Rymdraket','Kärnbooster','Plasmabooster','Antimateriabooster'],chassis:['Trälåda','Lättmetallkropp','Rörchassi','Aluminiumkropp','Sportkropp','Flygplanskropp','Lättviktskropp','Kompositkropp','Jetkropp','Titaniumkropp','Hypersonisk kropp','Rymdkapsel','Keramisk kapsel','Plasmakropp','Stjärnskeppskropp'],tail:['Träfena','Plåtfena','Förstärkt fena','Sportfena','Dubbelfena','Flygplansfena','Precisionsfena','Kompositfena','Jetfena','Titaniumfena','Hypersonisk fena','Rymdfena','Keramisk fena','Plasmafena','Gravitationsfena'],nose:['Träpropeller','Mopedpropeller','Sportpropeller','Stålpropeller','V8-propeller','Flygplanspropeller','Stjärnpropeller','Turbopropeller','Jetkon','Titaniumkon','Hypersonisk kon','Värmesköld','Keramisk kon','Plasmakon','Antimateriakon']};
+export interface Product{id:string;slot:Slot;tier:number;name:string;price:number}
+export interface Part{id:string;product:string;condition:number;mod:'standard'|'hobby'|'overclock';source:'shop'|'scrap'|'find'|'legacy';level:number}
+export interface Gear{items:Part[];mounted:Partial<Record<Slot,string>>;distance:number;premium:number;research:{active:string|null;start:number;done:string[]}}
+export const catalog:Product[]=slots.flatMap(slot=>names[slot].map((name,i)=>({id:`${slot}-${i+1}`,slot,tier:i+1,name,price:Math.round(({engine:100,wings:80,tank:60,rockets:45,chassis:90,tail:70,nose:65}[slot])*7**i)})));
+export const product=(p:Part)=>catalog.find(x=>x.id===p.product)!;
+export const blankGear=():Gear=>({items:[],mounted:{},distance:0,premium:0,research:{active:null,start:0,done:[]}});
+export function mounted(g:Gear,slot:Slot){return g.items.find(p=>p.id===g.mounted[slot]);}
+export const tier=(g:Gear,slot:Slot)=>{const p=mounted(g,slot);return p?product(p).tier:0;};
+export const maxTier=(g:Gear,slot:Slot)=>Math.min(15,tier(g,slot)+1);
+export function makePart(p:Product,source:Part['source']='shop',condition=4,mod:Part['mod']='standard'):Part{return {id:crypto.randomUUID(),product:p.id,condition,mod,source,level:0};}
+export const title=(p:Part)=>`${conditions[p.condition]} ${p.mod==='hobby'?'hobbymodifierad ':p.mod==='overclock'?'övertrimmad ':''}${product(p).name}`;
+export const upgradePrice=(p:Part)=>Math.ceil(product(p).price*(p.level+1)/10);
+export function strength(p:Part){return quality[p.condition]*(p.mod==='overclock'?1.2:1)*(1.25**(product(p).tier-1))*(1+.01875*p.level);}
+export function shopBuy(s:{coins:number;gear?:Gear},id:string){const g=s.gear!,p=catalog.find(x=>x.id===id);if(!p||p.tier>maxTier(g,p.slot)||s.coins<p.price)return false;s.coins-=p.price;const item=makePart(p);g.items.push(item);g.mounted[p.slot]=item.id;return true;}
+export function upgradePart(s:{coins:number;gear?:Gear},id:string){const p=s.gear!.items.find(x=>x.id===id);if(!p||!['shop','legacy'].includes(p.source)||p.level>=10||s.coins<upgradePrice(p))return false;s.coins-=upgradePrice(p);p.level++;return true;}
+export interface Research{id:string;name:string;slot:Slot;requires:string[];meters:number}
+export const research:Research[]=slots.flatMap(slot=>[1,2,3].map(n=>({id:`${slot}-r${n}`,name:`${labels[slot]} · ${['Grundforskning','Materialteknik','Avancerad optimering'][n-1]}`,slot,requires:n===1?[]:[`${slot}-r${n-1}`,...(n===3?[`${slots[(slots.indexOf(slot)+1)%slots.length]}-r2`]:[])],meters:100*10**(n-1)})));
+research.push({id:'integration',name:'Samverkande flygsystem',slot:'engine',requires:slots.map(s=>`${s}-r3`),meters:100000});
+export function researchProgress(g:Gear){const r=research.find(r=>r.id===g.research.active);return r?Math.min(1,(g.distance-g.research.start)/r.meters):0;}
+export function advanceResearch(g:Gear,meters:number){g.distance+=Math.max(0,meters);if(g.research.active&&researchProgress(g)>=1){g.research.done.push(g.research.active);g.research.active=null;}}
+export function syncGear(s:{gear?:Gear;levels:Record<string,number>}){if(!s.gear)return;for(const slot of slots){const p=mounted(s.gear,slot);const target=slot==='tail'?'steering':slot==='nose'?'efficiency':slot;s.levels[target]=p?Math.min(slot==='engine'||slot==='tank'||slot==='wings'?20:slot==='chassis'||slot==='rockets'?15:10,Math.max(.1,strength(p)*(1+.03*s.gear.research.done.filter(id=>id.startsWith(slot+'-')||id==='integration').length))):0;}}
