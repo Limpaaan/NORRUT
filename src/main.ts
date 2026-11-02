@@ -51,10 +51,10 @@ function tick(delta:number){
  if(phase==='flying'){accumulator+=Math.min(delta/1000,.1);while(accumulator>=1/120&&phase==='flying'){step(flight,controls,activeVehicle,1/120);accumulator-=1/120;if((flight.y<=0&&flight.time>.2)||flight.time>=180){flight.y=Math.max(0,flight.y);const result=settle(save,flight);phase='ready';shell.endRound();persist();el('overlay').style.display='block';el('overlay').querySelector('h2')!.textContent=flight.mode==='practice'?'Provflygningen är klar.':flight.y>0?'Tre minuter. Dags för bärgning.':result.soft?'Mjukt ner. Längre nästa gång.':'En historia till för verkstaden.';el('message').textContent=`${Math.floor(flight.x)} meter norrut${flight.mode==='practice'?' · inga föremål eller mynt förbrukades.':` · +${result.reward} skrotmynt.${result.crate?' Ny verkstadslåda!':''}${result.recovered?' Ett bus återvanns!':''}`}`;el('launch').textContent='En flygning till ↗';render();}}}
  el('distance').textContent=`${Math.floor(flight.x)} m`;
  const compass=flight.sabotage==='compass'&&flight.time<20&&phase==='flying';
- el('altitude').textContent=`${Math.floor(compass?flight.y+Math.sin(flight.time*4)*45:flight.y)} m${compass?' ?':''}`;
- el('speed').textContent=`${Math.round(Math.hypot(flight.vx,flight.vy)*3.6+(compass?Math.cos(flight.time*3)*70:0))} km/h${compass?' ?':''}`;
+ el('altitude').textContent=`${phase!=='flying'&&!flight.settled?0:Math.floor(compass?flight.y+Math.sin(flight.time*4)*45:flight.y)} m${compass?' ?':''}`;
+ el('speed').textContent=`${phase!=='flying'&&!flight.settled?0:Math.round(Math.hypot(flight.vx,flight.vy)*3.6+(compass?Math.cos(flight.time*3)*70:0))} km/h${compass?' ?':''}`;
  el('place').textContent=[...landmarks].reverse().find(l=>l.x<=flight.x)!.name;
- (el('fuel') as HTMLMeterElement).value=flight.fuel/flight.maxFuel*100;
+ (el('fuel') as HTMLMeterElement).value=activeVehicle.levels.engine>0?flight.fuel/flight.maxFuel*100:0;
  (el('boost') as HTMLMeterElement).value=flight.maxBoost>0?flight.boost/flight.maxBoost*100:0;
  el('flight-advice').textContent=phase==='flying'?(flight.stalled?'STALL · sänk nosen och bygg fart':save.levels.wings===0&&save.levels.engine===0&&save.levels.rockets===0?'Rampstart · installera en glidvinge, motor eller raket i verkstaden':`Nosvinkel ${Math.round(flight.angle*180/Math.PI)}°`):'';
  el('run-tag').textContent=flight.mode==='practice'?'PROVFLYGNING · UTAN BELÖNINGAR':flight.mode==='friends'?'LOKALT KOMPISLÄGE':'ENSAMPILOT · UTAN SABOTAGE';
