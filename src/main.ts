@@ -8,6 +8,7 @@ import Phaser from 'phaser';
 import './style.css';
 import './shell.css';
 import './orientation.css';
+import './city-ui.css';
 import {MAX_FLIGHT_SECONDS,buy,buyBooster,cost,unlocked,launch,lockRun,settle,step,practiceVehicle,upgrades,boosters,sabotages,busCount,openCrate,sendBus,type Flight,type Controls,type BoosterId,type SabotageId,type Mode} from './model';
 import {LocalSaveRepository,pilots,addPilot,pilotKey} from './storage';
 import {installHotkeys} from './hotkeys';
