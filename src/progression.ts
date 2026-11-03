@@ -11,7 +11,7 @@ import {instrumentDescription} from './instruments';
 import {catalog,slots,labels,blankGear,makePart,mounted,product,title,shopBuy,upgradePart,upgradePrice,maxTier,shopNextTier,highestAcquiredTier,refillBooster,tier,research,researchProgress,syncGear,type Slot,type Part} from './equipment';
 import type {Save} from './model';
 import './progression.css';
-export function ensureGear(s:Save){if(s.gear)return;const g=s.gear=blankGear();for(const slot of slots){if(slot==='instruments')continue;const key=slot==='tail'?'steering':slot==='nose'?'efficiency':slot;if(s.levels[key]>0){const p=makePart(catalog.find(p=>p.slot===slot&&p.tier===Math.max(1,Math.min(15,Math.ceil(s.levels[key]))))!,'legacy');g.items.push(p);g.mounted[slot]=p.id;}}syncGear(s);}
+export function ensureGear(s:Save){if(s.gear){syncGear(s);return;}const g=s.gear=blankGear();for(const slot of slots){if(slot==='instruments')continue;const key=slot==='tail'?'steering':slot==='nose'?'efficiency':slot;if(s.levels[key]>0){const p=makePart(catalog.find(p=>p.slot===slot&&p.tier===Math.max(1,Math.min(15,Math.ceil(s.levels[key]))))!,'legacy');g.items.push(p);g.mounted[slot]=p.id;}}syncGear(s);}
 interface Hooks{save:Save;busy():boolean;changed():void;market(name:string,args:unknown):Promise<any>}
 export function installProgression(h:Hooks){
  let view='city',selected:Slot='engine',categoryOpen=true,page=0,preview:Part|undefined,demo=0,waiting=false,message='',stock:any[]=[],stockLoaded=false,scrapMode='choose',busPage='items',branch='',clubTab='all',board:LeaderboardRow[]=[],boardLoading=false,boardError='',friends:{username:string;accepted:boolean;incoming:boolean}[]=[],boardRequest=0,adminAllowed=false,disposeMap=()=>{},disposePreview=()=>{};
