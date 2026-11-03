@@ -1,4 +1,4 @@
-# NORRUT! · 0.8.2
+# NORRUT! · 0.9.0
 
 Spelbart TypeScript/Phaser-spel: https://limpaaan.github.io/NORRUT/ · kod: https://github.com/Limpaaan/NORRUT
 
@@ -44,3 +44,5 @@ Instrumentpanelernas 15 ritade modeller och förhandsvisningar beskrivs i INSTRU
 
 
 0.8.2 ersätter landmärkesatlasen med sex större frilagda bilder och rättar frontmontering/köplåsning samt hantering av molnkonflikter. Se LANDMARK-ART-082.md och CHANGELOG.md.
+
+Aktuellt: RELEASE-090.md beskriver tyngre motorlös flygning, placerbara instrument, återmontering av ägda steg och Målarverkstaden med Ivane<3 · Kroatien.

@@ -1,3 +1,4 @@
+import {ivaneFrames,IVANE_ATLASES} from './ivane-art';
 import {landmarkAssets} from './landmark-assets';
 import {ContinuousLandscape} from './continuous-landscape';
 import {PART_ATLASES,craftVisuals,craftSignature,conditionTints,type PartVisual} from './part-visuals';
@@ -14,9 +15,9 @@ interface Puff {x:number;y:number;life:number;kind:'smoke'|'dust'}
 export function createJourney(state:()=>State){return class Journey extends Phaser.Scene {
  landscape!:ContinuousLandscape;background!:Phaser.GameObjects.Image;backgroundNext!:Phaser.GameObjects.Image;road!:Phaser.GameObjects.TileSprite;canopy!:Phaser.GameObjects.Image;leaves!:Phaser.GameObjects.Image;shadow!:Phaser.GameObjects.Ellipse;
  g!:Phaser.GameObjects.Graphics;fx!:Phaser.GameObjects.Graphics;cloth!:Phaser.GameObjects.Graphics;partsOverlay!:Phaser.GameObjects.Graphics;plane!:Phaser.GameObjects.Container;
- wing!:Phaser.GameObjects.Image;pilot!:Phaser.GameObjects.Image;prop!:Phaser.GameObjects.Image;rear!:Phaser.GameObjects.Image;front!:Phaser.GameObjects.Image;
+ liveryText!:Phaser.GameObjects.Text;wing!:Phaser.GameObjects.Image;pilot!:Phaser.GameObjects.Image;prop!:Phaser.GameObjects.Image;rear!:Phaser.GameObjects.Image;front!:Phaser.GameObjects.Image;
  componentSprites=new Map<Slot,Phaser.GameObjects.Image>();visuals:PartVisual[]=[];visualSignature='';droppedRocket!:Phaser.GameObjects.Image;sign!:Phaser.GameObjects.Text;elapsed=0;rotor=0;wheel=0;landingAt=-100;lastFlight:Flight|null=null;wasSettled=false;emit=0;smoke:Puff[]=[];
- preload(){this.load.on('progress',(value:number)=>{const loader=document.getElementById('asset-loading');if(loader)loader.textContent=`Verkstaden vaknar… ${Math.round(value*100)} %`;});for(const name of ['landscape','parts'])this.load.image(name,'art/'+name+'.webp');this.load.image('panorama-08','art/panorama-08.webp');this.load.image('birch-canopy-08','art/birch-canopy-08.webp');for(const a of [...PART_ATLASES,...landmarkAssets])this.load.image(a.key,a.url);}
+ preload(){this.load.on('progress',(value:number)=>{const loader=document.getElementById('asset-loading');if(loader)loader.textContent=`Verkstaden vaknar… ${Math.round(value*100)} %`;});for(const name of ['landscape','parts'])this.load.image(name,'art/'+name+'.webp');this.load.image('panorama-08','art/panorama-08.webp');this.load.image('birch-canopy-08','art/birch-canopy-08.webp');for(const a of [...PART_ATLASES,...landmarkAssets,...IVANE_ATLASES])this.load.image(a.key,a.url);}
  create(){
  document.getElementById('asset-loading')?.setAttribute('hidden','');
  const parts=this.textures.get('parts');parts.add('lower',0,0,300,900,320);parts.add('wing',0,0,0,900,300);parts.add('pilot',0,930,130,320,480);parts.add('wheel',0,95,695,470,460);parts.add('propeller',0,885,625,150,620);
@@ -27,6 +28,7 @@ export function createJourney(state:()=>State){return class Journey extends Phas
  this.plane=this.add.container(300,400).setDepth(5);
  for(const asset of PART_ATLASES){const texture=this.textures.get(asset.key);partFrameData[asset.slot].frames.forEach((r,i)=>texture.add(String(i),0,r.x,r.y,r.w,r.h));const image=this.add.image(0,0,asset.key,'0').setVisible(false);this.componentSprites.set(asset.slot,image);this.plane.add(image);}
  this.wing=this.componentSprites.get('wings')!;this.prop=this.componentSprites.get('nose')!;
+ for(const [slot,meta]of Object.entries(ivaneFrames)){const r=meta.rect;this.textures.get(meta.key).add(slot,0,r.x,r.y,r.w,r.h);}this.liveryText=this.add.text(50,36,'Ivane<3',{fontFamily:'Arial',fontStyle:'bold italic',fontSize:'19px',color:'#ffffff',stroke:'#142533',strokeThickness:3}).setOrigin(.5).setDepth(44).setVisible(false);this.plane.add(this.liveryText);
  this.pilot=this.add.image(35,-21,'parts','pilot').setOrigin(.5,.65).setDisplaySize(95,142.5).setDepth(25);
  this.cloth=this.add.graphics().setDepth(24);this.rear=this.add.image(-105,86,'parts','wheel').setDisplaySize(53,52).setDepth(45);this.front=this.add.image(122,86,'parts','wheel').setDisplaySize(45,44).setDepth(45);
  this.partsOverlay=this.add.graphics().setDepth(46);this.plane.add([this.cloth,this.pilot,this.rear,this.front,this.partsOverlay]);this.plane.sort('depth');
@@ -46,7 +48,7 @@ export function createJourney(state:()=>State){return class Journey extends Phas
 
  const rampAngle=Math.atan2(15+(s.launchpad?.height||0)*4,330+(s.launchpad?.length||0)*10);
  this.plane.setPosition(sx+(throttle&&!reduced?Math.sin(this.elapsed*55)*.5:0),sy+a.bodyBob*craftScale).setScale(craftScale).setRotation(flying?-f.angle:f.settled?-.015:-rampAngle);
- const signature=craftSignature(s.gear);if(signature!==this.visualSignature){this.visualSignature=signature;this.visuals=craftVisuals(s.gear);for(const image of this.componentSprites.values())image.setVisible(false);for(const v of this.visuals){const image=this.componentSprites.get(v.slot)!;image.setTexture(v.key,String(v.frame)).setDisplaySize(v.width,v.height).setPosition(v.x,v.y).setDepth(v.depth).setRotation(0).setTint(conditionTints[v.condition]).setVisible(true);}this.plane.sort('depth');}
+ const signature=craftSignature(s.gear);if(signature!==this.visualSignature){this.visualSignature=signature;this.visuals=craftVisuals(s.gear);for(const image of this.componentSprites.values())image.setVisible(false);for(const v of this.visuals){const image=this.componentSprites.get(v.slot)!;image.setTexture(v.key,v.textureFrame||String(v.frame)).setDisplaySize(v.width,v.height).setPosition(v.x,v.y).setDepth(v.depth).setRotation(0).setTint(conditionTints[v.condition]).setVisible(true);}this.plane.sort('depth');this.liveryText.setVisible(this.visuals.some(v=>v.slot==='chassis'&&v.skin==='ivane'));}
  this.pilot.y=-21+a.pilotBob;this.pilot.rotation=a.pilotAngle;
  if(!paused){this.rotor+=a.propellerRate*dt;this.wheel+=a.wheelRate*dt;}this.rear.rotation=this.wheel;this.front.rotation=this.wheel*1.18;this.rear.setScale(53/470,52/460*a.wheelSquash);this.front.setScale(45/470,44/460*a.wheelSquash);
  for(const v of this.visuals){const image=this.componentSprites.get(v.slot)!;let width=v.width,height=v.height;image.setPosition(v.x,v.y).setAlpha(1);if(v.slot==='wings')height*=a.wingFlex;if(v.slot==='nose'&&v.frame<8&&(throttle||flying))height*=.35+.65*Math.abs(Math.cos(this.rotor));if(v.slot==='engine'&&throttle&&!reduced)image.x+=Math.sin(this.elapsed*55)*.6;if(v.slot==='rockets'&&v.frame===0&&!reduced){image.y+=Math.sin(this.elapsed*2)*2;image.rotation=Math.sin(this.elapsed*2)*.025;}if(v.frame>=13&&!reduced)image.setAlpha(.92+.08*Math.sin(this.elapsed*7));image.setDisplaySize(width,height);}

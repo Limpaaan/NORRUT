@@ -18,3 +18,5 @@ Aktuell flygmodell, spelavstånd och landskap dokumenteras i FLIGHT-DESIGN-08.md
 
 
 Aktuell version 0.8.2: 65 tester, nya separata stadsbilder via landmark-assets.ts, genereringsprompter i LANDMARK-ART-082.md. mountPart validerar delkategori. shopRecoveryPart ger ägda delar som behöver återmonteras före nästa butiksköp. Molnkonflikter kräver ett aktivt val att hämta serverversionen; aldrig automatisk överskrivning.
+
+Aktuell version 0.9.0: läs RELEASE-090.md. 71 tester. Nytt: cockpit-placement.ts, cosmetics.ts, paintshop-ui.ts, ivane-art.ts och ivane-music.ts. Vingarea skalar med q^0.55, motorlösa motorbestyckade byggen får en glidpolar och högre stallfart. Ändra inte detta utan att köra tester för tyngre fall och tidiga uppgraderingar. Panelmodell följer faktisk köpt hårdvara; forskning förbättrar sensordata. Inga produktionssparningar nollställda och inga fria kosmetikpaket tilldelade.

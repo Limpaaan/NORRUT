@@ -74,30 +74,37 @@ export function lockRun(s:Save,chosen:BoosterId[],mode:Mode,practiceBus:Sabotage
  if(pending){s.received=s.received.filter(n=>n>now-7*86400000);s.received.push(now);if(rng()<s.levels.lock*.05){f.blocked=true;f.sabotage=null;}}
  if(f.sabotage==='krylbo')f.sabotage=sabotages[Math.min(10,Math.floor(rng()*11))].id;return f;}
 export function modifiers(f:Flight,s:Save){const r=researchEffects(s.gear?.research.done||[]),v=s.gear?vehicleEffect(s.gear):null,b=f.sabotage,def=s.levels.cargo*.08,reserve=s.levels.reserve*.07;return {mass:r.mass*(v?v.mass/100:1-s.levels.chassis*.02)*(f.boosterIds.includes('light')?.85:1)*(b==='weight'?1+.2*(1-def):1),drag:r.drag*(b==='horse'?1+.35*(1-def):1)*(b==='parachute'&&f.time>3?2.8:1),motor:r.motor*(v?v.driveFactor:1)*(f.boosterIds.includes('turbo')?1.2:1)*(b==='cough'&&f.time%4<1?.25+reserve*.75:1),boost:r.boost*(b==='rocket'?.5+reserve*.5:1),consumption:r.fuel*(v?v.fuel:1-s.levels.efficiency*.025)*(b==='leak'?1.15:1),lift:r.lift*(f.boosterIds.includes('lift')?1.2:1),turn:r.turn,inverted:b==='reverse'&&f.time<10*(1-s.levels.steering*.06)*r.reverse,wind:b==='wind'?4:b==='magnet'?2+Math.sin(f.time*3+f.seed)*2:0};}
-export function aerodynamics(f:Flight,s:Save){
- const speed=Math.max(.01,Math.hypot(f.vx,f.vy)),path=Math.atan2(f.vy,f.vx),aoa=Math.atan2(Math.sin(f.angle-path),Math.cos(f.angle-path));
- const stallLimit=.36+researchEffects(s.gear?.research.done||[]).stallMargin,stalled=s.levels.wings>0&&(Math.abs(aoa)>stallLimit||speed<12);
- const cl=wingLiftCoefficient(aoa,stalled);
- const v=s.gear?vehicleEffect(s.gear):null,area=v?v.area:s.levels.wings>0?.045+s.levels.wings*.003:.0005;
- const m=modifiers(f,s),density=Math.max(.1,Math.exp(-Math.max(0,f.y)/5000)),rawLift=area*speed*speed*cl*m.lift*density/m.mass,lift=Math.max(-GRAVITY*6,Math.min(GRAVITY*6,rawLift));
- const cd=.045+.12*cl*cl+(stalled?.12*Math.sin(aoa)**2:0),body=.0023*(v?v.dragFactor:1),wing=area*cd*(v?v.profileDrag:1);
- const drag=(body+wing)*speed*speed*m.drag*density/m.mass;
- const sideSpeed=-Math.sin(f.angle)*f.vx+Math.cos(f.angle)*f.vy,crossflow=(.004+(s.levels.wings>0?.004:0))*Math.abs(sideSpeed)*density/m.mass;
- return {speed,path,aoa,stalled,lift,drag,crossflow,sideSpeed};
+export function aerodynamics(f:Flight,s:Save,powered=(f.engineOn??false)&&f.fuel>0){
+ const speed=Math.max(.01,Math.hypot(f.vx,f.vy)),path=Math.atan2(f.vy,f.vx),aoa=Math.atan2(Math.sin(f.angle-path),Math.cos(f.angle-path)),v=s.gear?vehicleEffect(s.gear):null,area=v?v.area:s.levels.wings>0?.052+s.levels.wings*.003:.0005,m=modifiers(f,s),density=Math.max(.1,Math.exp(-Math.max(0,f.y)/6000));
+ const stallLimit=.36+researchEffects(s.gear?.research.done||[]).stallMargin,stallSpeed=Math.max(!powered&&s.levels.engine>0?24:0,Math.sqrt(GRAVITY*m.mass/Math.max(.001,area*1.4*m.lift*density))*.9),stalled=s.levels.wings>0&&(Math.abs(aoa)>stallLimit||speed<stallSpeed),cl=wingLiftCoefficient(aoa,stalled);
+ const rawLift=area*speed*speed*cl*m.lift*density/m.mass*(stalled&&!powered?.2:1),lift=Math.max(-GRAVITY*6,Math.min(GRAVITY*6,rawLift));
+ // A stalled airframe loses lift; it must not become a parachute. Gliding still spends height.
+ const cd=.045+.12*cl*cl+(stalled?.12*Math.sin(aoa)**2:0),body=.0023*(v?v.dragFactor:1)+(!powered&&s.levels.wings>0?(s.levels.engine>0?.014:.001)*Math.cos(path)**4:0),wing=area*cd*(v?v.profileDrag:1),drag=(body+wing)*speed*speed*m.drag*density/m.mass+(!powered&&s.levels.engine>0?Math.abs(lift)*.55:0);
+ const sideSpeed=-Math.sin(f.angle)*f.vx+Math.cos(f.angle)*f.vy,crossflow=(.004+(s.levels.wings>0?.004:0))*Math.abs(sideSpeed)*density/m.mass*(!powered&&stalled?.06:1);
+ return {speed,path,aoa,stalled,stallSpeed,lift,drag,crossflow,sideSpeed};
 }
 export function step(f:Flight,c:Controls,s:Save,dt:number){
  f.time+=dt;const m=modifiers(f,s);f.angle=Math.max(-1.52,Math.min(1.52,f.angle+(Number(c.right)-Number(c.left))*(m.inverted?-1:1)*(s.gear?vehicleEffect(s.gear).turn:1.8+s.levels.steering*.05)*m.turn*dt));
  const motor=(f.engineOn??c.thrust)&&f.fuel>0&&s.levels.engine>0,boost=c.boost&&f.boost>0;if(motor)f.fuel=Math.max(0,f.fuel-dt*m.consumption);if(boost)f.boost=Math.max(0,f.boost-dt);
  const v=s.gear?vehicleEffect(s.gear):null,motorForce=motor?(v?v.thrust/100:12+s.levels.engine*1.8)*m.motor:0,boostForce=boost?(v&&v.boostForce>0?v.boostForce/100:20+s.levels.rockets*1.5)*m.boost:0,thrust=(motorForce+(v?.balloon?0:boostForce))/m.mass;
  f.vx+=Math.cos(f.angle)*thrust*dt-m.wind*dt;f.vy+=(Math.sin(f.angle)*thrust+(v?.balloon?boostForce/m.mass:0)-GRAVITY)*dt;
- const a=aerodynamics(f,s);f.stalled=a.stalled;const rotation=a.lift/a.speed*dt,cs=Math.cos(rotation),sn=Math.sin(rotation),vx=f.vx,vy=f.vy;
+ const a=aerodynamics(f,s,motor||boost);f.stalled=a.stalled;const rotation=a.lift/a.speed*dt,cs=Math.cos(rotation),sn=Math.sin(rotation),vx=f.vx,vy=f.vy;
  // Lift rotates momentum without adding energy. Drag and sideways airflow only remove it.
  f.vx=(vx*cs-vy*sn);f.vy=(vx*sn+vy*cs);
- const damping=Math.exp(-a.drag/a.speed*dt);f.vx*=damping;f.vy*=damping;
+ const damping=Math.exp(-a.drag/a.speed*dt);f.vx*=damping;f.vy*=!motor&&!boost&&a.stalled&&f.vy<0?Math.exp(-Math.min(a.drag/a.speed,.0025*Math.abs(f.vy))*dt):damping;
  const along=Math.cos(f.angle)*f.vx+Math.sin(f.angle)*f.vy,side=(-Math.sin(f.angle)*f.vx+Math.cos(f.angle)*f.vy)*Math.exp(-a.crossflow*dt);
  f.vx=Math.max(0,Math.cos(f.angle)*along-Math.sin(f.angle)*side);f.vy=Math.sin(f.angle)*along+Math.cos(f.angle)*side;
  f.x+=f.vx*dt;f.y+=f.vy*dt;f.peakHeight=Math.max(f.peakHeight||0,f.y);f.peakSpeed=Math.max(f.peakSpeed||0,Math.hypot(f.vx,f.vy));
 }
 export function settle(s:Save,f:Flight,rng=Math.random){if(f.settled)return {soft:false,reward:0,crate:false,recovered:false,achievementReward:0};f.settled=true;const soft=f.y<=0&&Math.abs(f.vy)<10&&Math.abs(f.angle)<.4,reward=f.mode==='practice'?0:flightPay(f.x,f.mode==='solo'?s.best:s.busBest,soft);let crate=false,recovered=false,achievementReward=0;if(f.mode!=='practice'){if(s.gear)advanceResearch(s.gear,Math.floor(f.x));const unlocked=awardAchievements(f.x,s.achievements||[]);s.achievements=unlocked.claimed;achievementReward=unlocked.reward;s.coins=Math.min(Number.MAX_SAFE_INTEGER,s.coins+reward+unlocked.reward);if(unlocked.earned.length)s.history.push('Prestation: '+unlocked.earned.map(a=>a.name).join(', ')+' · +'+unlocked.reward+' skrot');s.runs++;if(f.mode==='solo')s.best=Math.max(s.best,Math.floor(f.x));else s.busBest=Math.max(s.busBest,Math.floor(f.x));if(s.runs%5===0){s.crates++;crate=true;}if(s.runs%10===0)s.tickets=Math.min(3,s.tickets+1);if(f.sender&&s.levels.return>0&&busCount(s)<5&&rng()<s.levels.return*.1){s.bus[f.sender.id]++;recovered=true;}s.history.push(`${Math.floor(f.x)} m · +${reward} skrot · ${f.sabotage?sabotages.find(b=>b.id===f.sabotage)!.name:f.blocked?'Bus stoppat':'Ingen störning'}`);s.history=s.history.slice(-12);}return {soft,reward,crate,recovered,achievementReward};}
+
+
+
+
+
+
+
+
+
 
 
