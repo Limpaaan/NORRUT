@@ -1,6 +1,6 @@
 # NORRUT! – samtliga produktsteg
 
-8 kategorier × 15 steg = 120 produkter. Produktsteg köps i Butiken. Varje köpt och installerad del kan därefter uppgraderas från grundnivå 0 till nivå 10 i Verkstaden. Skick och modifieringar är separata egenskaper och ändrar inte produktens steg.
+8 kategorier × 15 steg = 120 produkter. Produktsteg köps i Butiken. Varje köpt och installerad del kan därefter uppgraderas från grundnivå 0 till nivå 10 i Verkstaden. Alla delar använder en gemensam standard. Skick och specialmodifieringar är pausade.
 
 ## Motorer
 
