@@ -1,3 +1,7 @@
+# 0.8.1 – Ritade instrumentpaneler, 15 modeller
+
+Moped, bil, flyg och digitala avionikpaneler med fungerande visare, horisont och stapelmätare ersätter textrutan. Förhandsvisning finns i Inställningar och på instrumentdelar. Se INSTRUMENT-DESIGN.md.
+
 # 0.8.0 – Snabbrundor och sammanhängande landskap
 
 Flygningen använder separat horisontell och vertikal hastighet. Lyft roterar rörelseenergin; luftmotstånd och sidledes luftflöde tar bort energi. Brant stigning kostar fart framåt, dykning bygger fart och en mjuk upptagning bevarar mer fart. Gravitationen är 21,6 spelmeter/s². Dessa värden är spelbalans, inte en flygsimulator.
@@ -91,4 +95,5 @@ Klickbar Avesta-stadskarta, Till staden från rampen, nästan heltäckande plats
 
 ## 0.7.1
 Diskret buildstämpel från package.json syns nere till vänster under flygning och i spelmenyer. Mobilens styrknappar och bränslerad har extra avstånd till stämpeln.
+
 

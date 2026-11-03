@@ -1,4 +1,4 @@
-# NORRUT! · 0.8.0
+# NORRUT! · 0.8.1
 
 Spelbart TypeScript/Phaser-spel: https://limpaaan.github.io/NORRUT/ · kod: https://github.com/Limpaaan/NORRUT
 
@@ -39,3 +39,6 @@ Se CITY-ART.md, COMPONENT-ART.md, ENVIRONMENT-ART.md och ROUTE-ART.md för bildf
 ## Version 0.8.0
 
 Se FLIGHT-DESIGN-08.md för den nya flygmodellen, 60-sekunders rundor, komprimerade spelavstånd, ekonomi och panoramalandskap. Se FLIGHT-ART-08.md för nya bildfiler.
+
+Instrumentpanelernas 15 ritade modeller och förhandsvisningar beskrivs i INSTRUMENT-DESIGN.md.
+

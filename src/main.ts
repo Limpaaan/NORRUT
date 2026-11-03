@@ -10,6 +10,7 @@ import './style.css';
 import './shell.css';
 import './orientation.css';
 import './city-ui.css';
+import './cockpit.css';
 import {MAX_FLIGHT_SECONDS,buy,buyBooster,cost,unlocked,launch,lockRun,settle,step,practiceVehicle,upgrades,boosters,sabotages,busCount,openCrate,sendBus,type Flight,type Controls,type BoosterId,type SabotageId,type Mode} from './model';
 import {LocalSaveRepository,pilots,addPilot,pilotKey} from './storage';
 import {installHotkeys} from './hotkeys';
@@ -76,5 +77,6 @@ function toggleMotor(){if(phase!=='flying'||activeVehicle.levels.engine===0)retu
 installHotkeys(controls,release,action=>{if(action==='thrust')toggleMotor();});window.addEventListener('blur',release);document.addEventListener('visibilitychange',release);
 document.querySelectorAll<HTMLButtonElement>('[data-control]').forEach(b=>{const k=b.dataset.control as keyof Controls;b.onpointerdown=e=>{e.preventDefault();if(k==='thrust'){toggleMotor();return;}b.setPointerCapture(e.pointerId);controls[k]=true;b.classList.add('held');};const up=()=>{controls[k]=false;b.classList.remove('held');};b.onpointerup=up;b.onpointercancel=up;b.onlostpointercapture=up;});
 accounts=installAccounts({isFlying:()=>phase!=='ready',replace:(data,userId)=>{cloudUser=userId;repo=new LocalSaveRepository(userId?`norrut.account.${userId}`:pilotKey(pilotId));Object.assign(save,{gear:undefined,adminSeq:0,achievements:[],launchpad:undefined},userId?data:repo.load());repo.save(save);chosen.clear();activeVehicle=save;flight=launch(save);render();},pause:value=>{accountPaused=value;render();}});progression=installProgression({save,busy,changed(){activeVehicle=save;flight=launch(save);persist();render();},market(name,args){if(['scrap_buy','scrap_search'].includes(name))accounts!.save(save);return accounts!.market(name,args);}});installPlayerServices({save,loggedIn:()=>accounts!.loggedIn(),busy,pilotId:()=>pilotId,rpc:(name,args)=>accounts!.market(name,args),apply(data){if(!repo.save(data))return;Object.assign(save,{gear:undefined,launchpad:undefined,achievements:[]},data);activeVehicle=save;flight=launch(save);render();}});shell.finishSetup();installBuildWatermark();render();
+
 
 
