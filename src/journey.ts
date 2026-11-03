@@ -1,3 +1,4 @@
+import {landmarkAssets} from './landmark-assets';
 import {ContinuousLandscape} from './continuous-landscape';
 import {PART_ATLASES,craftVisuals,craftSignature,conditionTints,type PartVisual} from './part-visuals';
 import {partFrameData} from './part-frame-data';
@@ -15,12 +16,11 @@ export function createJourney(state:()=>State){return class Journey extends Phas
  g!:Phaser.GameObjects.Graphics;fx!:Phaser.GameObjects.Graphics;cloth!:Phaser.GameObjects.Graphics;partsOverlay!:Phaser.GameObjects.Graphics;plane!:Phaser.GameObjects.Container;
  wing!:Phaser.GameObjects.Image;pilot!:Phaser.GameObjects.Image;prop!:Phaser.GameObjects.Image;rear!:Phaser.GameObjects.Image;front!:Phaser.GameObjects.Image;
  componentSprites=new Map<Slot,Phaser.GameObjects.Image>();visuals:PartVisual[]=[];visualSignature='';droppedRocket!:Phaser.GameObjects.Image;sign!:Phaser.GameObjects.Text;elapsed=0;rotor=0;wheel=0;landingAt=-100;lastFlight:Flight|null=null;wasSettled=false;emit=0;smoke:Puff[]=[];
- preload(){this.load.on('progress',(value:number)=>{const loader=document.getElementById('asset-loading');if(loader)loader.textContent=`Verkstaden vaknar… ${Math.round(value*100)} %`;});for(const name of ['landscape','parts','foliage','route-atlas','landmark-layers'])this.load.image(name,'art/'+name+'.webp');this.load.image('panorama-08','art/panorama-08.webp');this.load.image('birch-canopy-08','art/birch-canopy-08.webp');for(const a of PART_ATLASES)this.load.image(a.key,a.url);}
+ preload(){this.load.on('progress',(value:number)=>{const loader=document.getElementById('asset-loading');if(loader)loader.textContent=`Verkstaden vaknar… ${Math.round(value*100)} %`;});for(const name of ['landscape','parts'])this.load.image(name,'art/'+name+'.webp');this.load.image('panorama-08','art/panorama-08.webp');this.load.image('birch-canopy-08','art/birch-canopy-08.webp');for(const a of [...PART_ATLASES,...landmarkAssets])this.load.image(a.key,a.url);}
  create(){
  document.getElementById('asset-loading')?.setAttribute('hidden','');
  const parts=this.textures.get('parts');parts.add('lower',0,0,300,900,320);parts.add('wing',0,0,0,900,300);parts.add('pilot',0,930,130,320,480);parts.add('wheel',0,95,695,470,460);parts.add('propeller',0,885,625,150,620);
  const bg=this.textures.get('landscape');bg.add('asphalt',0,0,791,1672,150);
- const atlas=this.textures.get('route-atlas'),source=atlas.getSourceImage() as HTMLImageElement;for(let i=0;i<8;i++){const x=Math.round(i%2*source.width/2),y=Math.round(Math.floor(i/2)*source.height/4),right=Math.round((i%2+1)*source.width/2),bottom=Math.round((Math.floor(i/2)+1)*source.height/4);atlas.add(atlasFrames[i],0,x,y,right-x,bottom-y);}
  this.landscape=new ContinuousLandscape(this);
  this.road=this.add.tileSprite(0,0,1200,100,'landscape','asphalt').setOrigin(0);
  this.g=this.add.graphics();this.shadow=this.add.ellipse(0,0,320,30,0x283322,.3);this.fx=this.add.graphics().setDepth(6);

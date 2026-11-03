@@ -1,10 +1,10 @@
-# NORRUT! – aktuell status 0.8.1
+# 0.8.2 – Skarpare städer och fungerande frontflöde
 
-Spelet publiceras från GitHub main till https://limpaaan.github.io/NORRUT/ via GitHub Actions. Supabase är anslutet och migrationerna 001–010 är applicerade. Läs README.md och HANDOFF.md för konton, molnsparning, vänner, topplistor, skrotlager och serverkontrollerad administration.
+Sex separata transparenta landmärkesbilder på 2172×724 ersätter atlasutsnitt på cirka 627×313. Naturliga alfakanter och en storleksgräns mot originalets bildpunkter ersätter den gamla maskningen och kraftiga uppskalningen. Panoramat fortsätter bakom landmärkena. Även ruttkartans förhandsvisningar använder de nya filerna.
 
-0.8.0 innehåller korta flygrundor (max 60 sekunder), omarbetad vinkelberoende fysik, automatisk motor med av/på-växel, tydligare fart/höjdreferenser samt kontinuerligt panorama och animerad genomskinlig förgrund. Se FLIGHT-DESIGN-08.md och FLIGHT-ART-08.md. 58 tester och produktionsbygget passerar lokalt.
+Butiken visar nu en gratis monteringsknapp när en redan ägd, omonterad del blockerar nästa produktsteg. Montering validerar ägande och använder delens faktiska kategori. Köpta fronter följer med genom sparning och visas på farkosten.
 
-Befintlig progression bevaras. Historiska rekord från tidigare fysik går därför inte att jämföra rättvist med nya försök. Flygning och vanlig ekonomi simuleras fortfarande i klienten. Google-inloggning är uppskjuten enligt användarens önskemål.
+En misslyckad molnbekräftelse kontrolleras mot den exakta sparningen på servern. Identisk data kan bekräftas utan en ny skrivning. Verkliga konflikter skriver aldrig automatiskt över andra enheters framsteg; kontodialogen visar en knapp för att hämta senaste molnsparning utan utloggning. Inga databas- eller behörighetsändringar.
 
-0.8.1: 15 ritade instrumentpaneler och förhandsvisningar i Inställningar och deljämförelser, se INSTRUMENT-DESIGN.md.
+Verifierat med 65 tester, inklusive samtliga 15 frontsteg, återmontering, migration, kategoriisolering, bildstorleksgränser och tappad sparbekräftelse kontra verklig konflikt.
 

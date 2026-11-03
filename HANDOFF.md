@@ -16,3 +16,5 @@ Aktuell flygmodell, spelavstånd och landskap dokumenteras i FLIGHT-DESIGN-08.md
 
 0.8.1 ersätter instrumentens textruta med Canvas-ritade paneler i cockpit-art.ts. Alla 15 produktsteg har separat material/färg/layout och faktiska mätvärden. cockpit-gallery.ts ger ett galleri i Inställningar; part-stats-ui.ts visar vald panel före köp. Se INSTRUMENT-DESIGN.md. Ändra inte sensorupplåsning eller verkstadens 0–10 trimnivåer för en grafisk justering.
 
+
+Aktuell version 0.8.2: 65 tester, nya separata stadsbilder via landmark-assets.ts, genereringsprompter i LANDMARK-ART-082.md. mountPart validerar delkategori. shopRecoveryPart ger ägda delar som behöver återmonteras före nästa butiksköp. Molnkonflikter kräver ett aktivt val att hämta serverversionen; aldrig automatisk överskrivning.

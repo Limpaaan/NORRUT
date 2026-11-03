@@ -1,4 +1,4 @@
-# NORRUT! · 0.8.1
+# NORRUT! · 0.8.2
 
 Spelbart TypeScript/Phaser-spel: https://limpaaan.github.io/NORRUT/ · kod: https://github.com/Limpaaan/NORRUT
 
@@ -42,3 +42,5 @@ Se FLIGHT-DESIGN-08.md för den nya flygmodellen, 60-sekunders rundor, komprimer
 
 Instrumentpanelernas 15 ritade modeller och förhandsvisningar beskrivs i INSTRUMENT-DESIGN.md.
 
+
+0.8.2 ersätter landmärkesatlasen med sex större frilagda bilder och rättar frontmontering/köplåsning samt hantering av molnkonflikter. Se LANDMARK-ART-082.md och CHANGELOG.md.
