@@ -13,3 +13,6 @@ Vänner/allmänt leaderboard är anslutna serverfunktioner. Adminvyn använder a
 58 tester, inklusive Hedemora vid 3 km: kontrollerat steg 9 behöver bränsleplanering. Statistikens uppmätta delvärden före forskning och boosters; lyft vid 90km/h och 6° anfallsvinkel. Testa nya menyer på desktop och liggande mobil innan leverans. Behåll PC/mobilkrav, svenska texter och alla tidigare funktionskrav.
 
 Aktuell flygmodell, spelavstånd och landskap dokumenteras i FLIGHT-DESIGN-08.md. Rundor max 60 s, motorn automatisk med på/av-växel. Kamera px får aldrig bero på höjd. Nya panoramat 2172×724 och björkförgrunden 1536×1024 har separata filer (FLIGHT-ART-08.md). Ingen databasändring behövs för 0.8.0. Gamla rekord är bevarade och därför inte direkt jämförbara med den nya fysiken.
+
+0.8.1 ersätter instrumentens textruta med Canvas-ritade paneler i cockpit-art.ts. Alla 15 produktsteg har separat material/färg/layout och faktiska mätvärden. cockpit-gallery.ts ger ett galleri i Inställningar; part-stats-ui.ts visar vald panel före köp. Se INSTRUMENT-DESIGN.md. Ändra inte sensorupplåsning eller verkstadens 0–10 trimnivåer för en grafisk justering.
+
