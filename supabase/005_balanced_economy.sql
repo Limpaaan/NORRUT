@@ -1,0 +1,156 @@
+insert into norrut_private.product_catalog(id,slot,tier,price) values ('engine-1','engine',1,100),
+('engine-2','engine',2,750),
+('engine-3','engine',3,2200),
+('engine-4','engine',4,4500),
+('engine-5','engine',5,8000),
+('engine-6','engine',6,13000),
+('engine-7','engine',7,20000),
+('engine-8','engine',8,30000),
+('engine-9','engine',9,44000),
+('engine-10','engine',10,63000),
+('engine-11','engine',11,90000),
+('engine-12','engine',12,125000),
+('engine-13','engine',13,170000),
+('engine-14','engine',14,230000),
+('engine-15','engine',15,310000),
+('wings-1','wings',1,80),
+('wings-2','wings',2,600),
+('wings-3','wings',3,1760),
+('wings-4','wings',4,3600),
+('wings-5','wings',5,6400),
+('wings-6','wings',6,10400),
+('wings-7','wings',7,16000),
+('wings-8','wings',8,24000),
+('wings-9','wings',9,35200),
+('wings-10','wings',10,50400),
+('wings-11','wings',11,72000),
+('wings-12','wings',12,100000),
+('wings-13','wings',13,136000),
+('wings-14','wings',14,184000),
+('wings-15','wings',15,248000),
+('tank-1','tank',1,60),
+('tank-2','tank',2,450),
+('tank-3','tank',3,1320),
+('tank-4','tank',4,2700),
+('tank-5','tank',5,4800),
+('tank-6','tank',6,7800),
+('tank-7','tank',7,12000),
+('tank-8','tank',8,18000),
+('tank-9','tank',9,26400),
+('tank-10','tank',10,37800),
+('tank-11','tank',11,54000),
+('tank-12','tank',12,75000),
+('tank-13','tank',13,102000),
+('tank-14','tank',14,138000),
+('tank-15','tank',15,186000),
+('rockets-1','rockets',1,10),
+('rockets-2','rockets',2,75),
+('rockets-3','rockets',3,220),
+('rockets-4','rockets',4,450),
+('rockets-5','rockets',5,800),
+('rockets-6','rockets',6,1300),
+('rockets-7','rockets',7,2000),
+('rockets-8','rockets',8,3000),
+('rockets-9','rockets',9,4400),
+('rockets-10','rockets',10,6300),
+('rockets-11','rockets',11,9000),
+('rockets-12','rockets',12,12500),
+('rockets-13','rockets',13,17000),
+('rockets-14','rockets',14,23000),
+('rockets-15','rockets',15,31000),
+('chassis-1','chassis',1,90),
+('chassis-2','chassis',2,675),
+('chassis-3','chassis',3,1980),
+('chassis-4','chassis',4,4050),
+('chassis-5','chassis',5,7200),
+('chassis-6','chassis',6,11700),
+('chassis-7','chassis',7,18000),
+('chassis-8','chassis',8,27000),
+('chassis-9','chassis',9,39600),
+('chassis-10','chassis',10,56700),
+('chassis-11','chassis',11,81000),
+('chassis-12','chassis',12,112500),
+('chassis-13','chassis',13,153000),
+('chassis-14','chassis',14,207000),
+('chassis-15','chassis',15,279000),
+('tail-1','tail',1,70),
+('tail-2','tail',2,525),
+('tail-3','tail',3,1540),
+('tail-4','tail',4,3150),
+('tail-5','tail',5,5600),
+('tail-6','tail',6,9100),
+('tail-7','tail',7,14000),
+('tail-8','tail',8,21000),
+('tail-9','tail',9,30800),
+('tail-10','tail',10,44100),
+('tail-11','tail',11,63000),
+('tail-12','tail',12,87500),
+('tail-13','tail',13,119000),
+('tail-14','tail',14,161000),
+('tail-15','tail',15,217000),
+('nose-1','nose',1,65),
+('nose-2','nose',2,488),
+('nose-3','nose',3,1430),
+('nose-4','nose',4,2925),
+('nose-5','nose',5,5200),
+('nose-6','nose',6,8450),
+('nose-7','nose',7,13000),
+('nose-8','nose',8,19500),
+('nose-9','nose',9,28600),
+('nose-10','nose',10,40950),
+('nose-11','nose',11,58500),
+('nose-12','nose',12,81250),
+('nose-13','nose',13,110500),
+('nose-14','nose',14,149500),
+('nose-15','nose',15,201500),
+('instruments-1','instruments',1,35),
+('instruments-2','instruments',2,263),
+('instruments-3','instruments',3,770),
+('instruments-4','instruments',4,1575),
+('instruments-5','instruments',5,2800),
+('instruments-6','instruments',6,4550),
+('instruments-7','instruments',7,7000),
+('instruments-8','instruments',8,10500),
+('instruments-9','instruments',9,15400),
+('instruments-10','instruments',10,22050),
+('instruments-11','instruments',11,31500),
+('instruments-12','instruments',12,43750),
+('instruments-13','instruments',13,59500),
+('instruments-14','instruments',14,80500),
+('instruments-15','instruments',15,108500) on conflict(id) do update set slot=excluded.slot,tier=excluded.tier,price=excluded.price;
+
+create or replace function norrut_private.scrap_action(offer_id text,category text) returns text language plpgsql security definer set search_path='' as $$
+declare d jsonb;g jsonb;o record;p record;item jsonb;cap integer;balance numeric;search_cost numeric;roll double precision;q integer;message text;arr text[];better boolean;money numeric;
+begin
+ if auth.uid() is null then raise exception 'Logga in först';end if;
+ select data into d from public.player_saves where user_id=auth.uid() for update;
+ if d is null then raise exception 'Sparning saknas';end if;
+ g:=d->'gear';if g is null then raise exception 'Öppna Butiken först';end if;balance:=(d->>'coins')::numeric;
+ if offer_id is not null then
+  select * into o from public.scrap_offers where id=offer_id for update;
+  if o is null or o.sold_to is not null or o.window_id<>floor(extract(epoch from now())/1800) then raise exception 'Delen är såld eller lagret har bytts';end if;
+  select * into p from norrut_private.product_catalog where id=o.product;
+  select coalesce(max(c.tier),0)+1 into cap from jsonb_array_elements(g->'items') a join norrut_private.product_catalog c on c.id=a->>'product' where a->>'id'=g->'mounted'->>p.slot;
+  if p.tier>cap or balance<o.price then raise exception 'Låst steg eller för lite pengar';end if;
+  balance:=balance-o.price;item:=jsonb_build_object('id',gen_random_uuid(),'product',p.id,'condition',o.condition,'mod',o.mod,'source','scrap','level',0);
+  update public.scrap_offers set sold_to=auth.uid() where id=offer_id;message:='Delen finns nu under Montering.';
+ else
+  if category not in ('drive','aero','electronics') then raise exception 'Ogiltig kategori';end if;
+  arr:=case when category='electronics' then array['instruments'] when category='drive' then array['engine','rockets','tank'] else array['wings','chassis','tail','nose'] end;
+  select coalesce(max(c.tier),0)+1 into cap from jsonb_array_elements(g->'items') a join norrut_private.product_catalog c on c.id=a->>'product' where c.slot=any(arr) and a->>'id'=g->'mounted'->>c.slot;
+  select greatest(5,round(5+price*.018)) into search_cost from norrut_private.product_catalog where id='engine-'||greatest(1,least(15,cap-1));
+  if balance<search_cost then raise exception 'För lite pengar';end if;balance:=balance-search_cost;roll:=random();message:='Ingenting den här gången.';
+  if roll>=.35 and roll<.70 then
+   money:=ceil(search_cost*.3)+floor(random()*(greatest(0,floor(search_cost*.85)-ceil(search_cost*.3))+1));balance:=balance+money;message:='Du hittade '||money::text||' skrotmynt.';
+  elsif roll>=.70 then
+   better:=roll>=.90;
+   select c.* into p from norrut_private.product_catalog c where c.slot=any(arr) and c.tier<=least(15,cap) and c.tier<=1+coalesce((select max(c2.tier) from jsonb_array_elements(g->'items') a join norrut_private.product_catalog c2 on c2.id=a->>'product' where a->>'id'=g->'mounted'->>c.slot),0) order by case when better then -c.tier else 0 end,random() limit 1;
+   if better then q:=least(6,4+floor(ln(greatest(.0000001,random()))/ln(.2))::integer);else q:=least(6,floor(ln(greatest(.0000001,random()))/ln(.3))::integer);end if;
+   item:=jsonb_build_object('id',gen_random_uuid(),'product',p.id,'condition',q,'mod',case when random()<.2 then 'hobby' when random()<.15 then 'overclock' else 'standard' end,'source','find','level',0);message:=case when better then 'Du hittade en bättre variant! Se Montering.' else 'Du hittade en del! Se Montering.' end;
+  end if;
+ end if;
+ if item is not null then g:=jsonb_set(g,'{items}',(g->'items')||jsonb_build_array(item));end if;
+ d:=jsonb_set(jsonb_set(d,'{gear}',g),'{coins}',to_jsonb(balance));update public.player_saves set data=d,revision=revision+1 where user_id=auth.uid();return message;
+end;$$;
+
+update public.scrap_offers o set price=greatest(1,floor(c.price*(.08+o.condition*.055))) from norrut_private.product_catalog c where o.product=c.id and o.sold_to is null;

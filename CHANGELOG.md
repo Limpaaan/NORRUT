@@ -54,3 +54,8 @@ Verifiering: produktionsbygge och 20 automatiska tester för ekonomi, flygfysik,
 - Sträckstapel mot större milstolpar och publik konto-topplista.
 - 40 tester, inklusive en bränsleplanerad flygning till Hedemora.
 - HANDOFF.md för att fortsätta från en annan dator.
+
+## 0.6
+120 separata delbilder med monteringsförhandsvisning. Animerade miljöer för butik, verkstad, labb och skrot. Kontinuerligt landskap och synlig mark. Ombalanserad ekonomi, 35/35/20/10-skrotsökning, prestationer och rampuppgraderingar. Butiken visar nästa produktsteg, verkstaden uppgraderar installerade köpta delar. Förgrenad forskning med konkreta passiva effekter.
+
+Startval för konto/gäst, serverkontrollerad administration och anonymt gästregister med köade adminändringar. Topplista Alla/Vänner med accepterade vänförfrågningar. Gästprogression sparas lokalt; molnkonton följer med mellan enheter. Kontolösenord är hashade och visas aldrig i administrationen.

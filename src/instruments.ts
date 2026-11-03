@@ -1,3 +1,3 @@
 import {product,type Part} from './equipment.ts';
-export function instrumentLevel(p:Part|undefined){return p?Math.min(15,product(p).tier+Math.floor(p.level/2)):0;}
+export function instrumentLevel(p:Part|undefined,done:readonly string[]=[]){return p?Math.min(15,product(p).tier+Math.floor(p.level/2)+(done.includes('instruments-r2')?1:0)+(done.includes('instruments-r3')?1:0)):0;}
 export function instrumentDescription(level:number){return level===0?'Inga instrument':`${level>=7?'Digital flygdator':'Analog panel'} · fart och höjd${level>=2?' · stig/sjunk':''}${level>=3?' · nosvinkel':''}${level>=4?' · anfallsvinkel och stall':''}${level>=5?' · vind':''}${level>=6?' · luftmotstånd':''}${level>=8?' · flygtid':''}${level>=9?' · energi':''}${level>=10?' · glidtal':''}`;}
