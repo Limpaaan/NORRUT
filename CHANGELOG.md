@@ -63,3 +63,7 @@ Startval för konto/gäst, serverkontrollerad administration och anonymt gästre
 
 ## 0.7
 Klickbar Avesta-stadskarta, Till staden från rampen, nästan heltäckande platsmenyer med kategorier och sidknappar. Ny adminvy med sökning, konto/gästfilter, spelaröversikt och separata vyer för mynt och bekräftad nollställning. Delstatistik jämför monterad/vald/nästa nivå, samt alla nivåer 0–10 och totalkostnad. Skick och specialmodifieringar pausade; samma produkt har samma grundvärden från alla källor. Gemensamma fysik- och statistikfunktioner. Motor och booster ombalanserade; kroppsvikt, vingar, fenor, fronter och instrument har tydliga avgränsade effekter. Instrumentuppgraderingar förbättrar mätupplösning; nya sensorer låses upp av nya produktsteg.
+
+## 0.7.1
+Diskret buildstämpel från package.json syns nere till vänster under flygning och i spelmenyer. Mobilens styrknappar och bränslerad har extra avstånd till stämpeln.
+
