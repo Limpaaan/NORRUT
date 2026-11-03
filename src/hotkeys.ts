@@ -2,10 +2,10 @@ import type {Controls} from './model';
 export type Action=keyof Controls;
 export type Bindings=Record<Action,string[]>;
 export const defaults=():Bindings=>({left:['ArrowLeft','KeyA'],right:['ArrowRight','KeyD'],thrust:['ArrowUp','KeyW'],boost:['ArrowDown','KeyS','Space']});
-export const labels:Record<Action,string>={left:'Sänk nos',right:'Höj nos',thrust:'Motor',boost:'Boost'};
+export const labels:Record<Action,string>={left:'Sänk nos',right:'Höj nos',thrust:'Motor på/av',boost:'Boost'};
 export function keyLabel(code:string){return ({ArrowLeft:'←',ArrowRight:'→',ArrowUp:'↑',ArrowDown:'↓',Space:'Mellanslag'} as Record<string,string>)[code]||code.replace(/^Key/,'').replace(/^Digit/,'');}
 export function validateBindings(value:unknown):value is Bindings {if(!value||typeof value!=='object')return false;const used=new Set<string>();return (Object.keys(defaults()) as Action[]).every(a=>{const keys=(value as Bindings)[a];return Array.isArray(keys)&&keys.length>0&&keys.length<=3&&keys.every(k=>typeof k==='string'&&/^(Key[A-Z]|Digit[0-9]|Arrow(Left|Right|Up|Down)|Space|Shift(Left|Right)|Control(Left|Right))$/.test(k)&&!used.has(k)&&!!used.add(k));});}
-export function installHotkeys(controls:Controls,release:()=>void){
+export function installHotkeys(controls:Controls,release:()=>void,onPress?:(action:Action)=>void){
  let bindings=defaults();try{const stored=JSON.parse(localStorage.getItem('norrut.hotkeys.v1')||'null');if(validateBindings(stored))bindings=stored;}catch{}
  const panel=document.createElement('details');panel.className='key-settings';panel.innerHTML='<summary>Tangentinställningar</summary><p>Välj en tangentknapp och tryck sedan på en ny tangent. Esc avbryter. Inställningarna sparas på denna enhet.</p><div class="key-list"></div><p class="key-status" role="status"></p><button type="button" class="reset-keys">Återställ pilar / WASD</button>';
  document.querySelector('.controls')!.after(panel);const status=panel.querySelector('.key-status')!;let capture:{action:Action;slot:number}|null=null;
@@ -14,7 +14,7 @@ export function installHotkeys(controls:Controls,release:()=>void){
  const pressed=new Set<string>();const update=()=>{for(const a of Object.keys(labels) as Action[])controls[a]=bindings[a].some(k=>pressed.has(k));};
  window.addEventListener('keydown',e=>{if(capture){e.preventDefault();e.stopImmediatePropagation();if(e.code==='Escape'){capture=null;status.textContent='Ändringen avbröts.';return;}const next=structuredClone(bindings);next[capture.action][capture.slot]=e.code;if(!validateBindings(next)){status.textContent='Tangenten är upptagen eller stöds inte. Välj en annan tangent, eller Esc.';return;}bindings=next;capture=null;pressed.clear();release();persist();render();return;}
  if(e.target instanceof HTMLElement&&(e.target.closest('input,textarea,select,[contenteditable=true],.key-settings')||e.target.closest('button')&&e.code==='Space'))return;
- if(Object.values(bindings).some(keys=>keys.includes(e.code))){e.preventDefault();pressed.add(e.code);update();}});
+ if(Object.values(bindings).some(keys=>keys.includes(e.code))){e.preventDefault();const first=!pressed.has(e.code);pressed.add(e.code);update();if(first&&!e.repeat){const action=(Object.keys(bindings) as Action[]).find(a=>bindings[a].includes(e.code));if(action)onPress?.(action);}}});
  window.addEventListener('keyup',e=>{if(pressed.delete(e.code)){e.preventDefault();update();}});
  const clear=()=>{pressed.clear();release();};window.addEventListener('blur',clear);document.addEventListener('visibilitychange',clear);panel.querySelector<HTMLButtonElement>('.reset-keys')!.onclick=()=>{clear();capture=null;bindings=defaults();persist();render();};render();
 }

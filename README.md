@@ -1,4 +1,4 @@
-# NORRUT! · 0.7
+# NORRUT! · 0.8.0
 
 Spelbart TypeScript/Phaser-spel: https://limpaaan.github.io/NORRUT/ · kod: https://github.com/Limpaaan/NORRUT
 
@@ -8,7 +8,7 @@ Node.js 24. Kör `npm ci`, `npm run dev`, `npm test` och `npm run build`. GitHub
 
 ## Spela
 
-Pilar/WASD: vänster/A sänker nosen, höger/D höjer den, upp/W motor, ned/S/mellanslag boost. Tangenter går att ändra i Inställningar. Mobilen spelas i liggande läge med hållknappar. Dykning ger fart till kostnad av höjd; glidflykt och upptagning kräver rätt vinkel.
+Pilar/WASD: vänster/A sänker nosen, höger/D höjer den, upp/W växlar automatisk motor av/på, ned/S/mellanslag boost. Tangenter går att ändra i Inställningar. Mobilen spelas i liggande läge med hållknappar för nos och boost samt motorväxel. Dykning ger fart till kostnad av höjd; glidflykt och upptagning kräver rätt vinkel.
 
 Till staden öppnar en klickbar Avesta-karta. Välj butik, verkstad, hangar, skrot, labb, ramp, pilotklubb eller torget. Nästan heltäckande menyer använder kategorier och sidknappar. Butiken säljer nästa produktsteg; Verkstaden uppgraderar köpta och monterade delar till nivå 10. Hangaren visar ägda delar för montering. Katalogen har 8 kategorier × 15 steg. Se PRODUCT-CATALOG.md.
 
@@ -35,3 +35,7 @@ city.ts och city-ui.css: stad och layout. progression.ts: platsmenyer. part-stat
 54 automatiska tester täcker fysik, delvärden, ekonomi, progression, lagring och kontokontrakt. Geografin är schematisk. Resultat beräknas i klienten; topplistan är ännu inte fuskresistent med verifierade repriser. Privata rum, global chatt, prestige och forskning bortom nuvarande träd är framtida arbete. Sabotage är spelbara i lokalt kompisläge. Sena byggen behöver fortsatt provspelning.
 
 Se CITY-ART.md, COMPONENT-ART.md, ENVIRONMENT-ART.md och ROUTE-ART.md för bildfiler och prompter.
+
+## Version 0.8.0
+
+Se FLIGHT-DESIGN-08.md för den nya flygmodellen, 60-sekunders rundor, komprimerade spelavstånd, ekonomi och panoramalandskap. Se FLIGHT-ART-08.md för nya bildfiler.
