@@ -15,3 +15,5 @@
 .leaderboard-tabs{display:flex;gap:12px;margin:12px 0}.leaderboard-tabs button[aria-pressed=true]{background:#dec080;color:#182c32;box-shadow:0 0 0 2px #e8d4a0}.leaderboard-table{width:100%}#progression form{display:flex;gap:10px;flex-wrap:wrap}#progression article>div>span{display:inline-block;margin:10px}
 
 .admin-dialog{width:min(900px,94vw);background:#1b3038;color:#eee;border:1px solid #a99361;border-radius:16px}.admin-player-list{max-height:65vh;overflow:auto}.admin-player-list article{padding:12px;border-bottom:1px solid #66766e}.admin-player-list input{width:120px}.admin-player-list button{margin:6px}
+
+.account-tabs{display:flex;gap:8px;margin:12px 0}.account-tabs button[aria-selected=true]{background:#d3aa69;color:#132a30}.account-dialog .google-login,.account-dialog .guest-play{width:100%;margin-top:12px}.account-dialog .guest-play{background:#deca9d;color:#203b3d}.account-dialog [hidden]{display:none!important}
