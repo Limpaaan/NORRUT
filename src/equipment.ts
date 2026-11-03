@@ -18,10 +18,10 @@ export const maxTier=(g:Gear,slot:Slot)=>Math.min(15,Math.max(tier(g,slot),slot=
 export function highestAcquiredTier(g:Gear,slot:Slot){return Math.max(g.shopSteps?.[slot]||0,0,...g.items.filter(p=>product(p).slot===slot).map(p=>product(p).tier));}
 export function shopNextTier(g:Gear,slot:Slot){const highest=highestAcquiredTier(g,slot);return highest>=15?null:highest+1;}
 export function refillBooster(s:{coins:number;gear?:Gear},id:string){const g=s.gear!,p=catalog.find(p=>p.id===id);if(!p||p.slot!=='rockets'||p.tier>highestAcquiredTier(g,'rockets')||s.coins<p.price)return false;s.coins-=p.price;const item=makePart(p);g.items.push(item);g.mounted.rockets=item.id;return true;}
-export function makePart(p:Product,source:Part['source']='shop',condition=4,mod:Part['mod']='standard'):Part{return {id:crypto.randomUUID(),product:p.id,condition,mod,source,level:0};}
-export const title=(p:Part)=>`${conditions[p.condition]} ${p.mod==='hobby'?'hobbymodifierad ':p.mod==='overclock'?'övertrimmad ':''}${product(p).name}`;
+export function makePart(p:Product,source:Part['source']='shop',condition=4,mod:Part['mod']='standard'):Part{return {id:crypto.randomUUID(),product:p.id,condition:4,mod:'standard',source,level:0};}
+export const title=(p:Part)=>product(p).name;
 export const upgradePrice=(p:Part)=>workshopStepCost(product(p).price,catalog.find(c=>c.slot===product(p).slot&&c.tier===product(p).tier+1)?.price,p.level);
-export function strength(p:Part){return quality[p.condition]*(p.mod==='overclock'?1.2:1)*(1.25**(product(p).tier-1))*(1+.01875*p.level);}
+export function strength(p:Part){return (1.25**(product(p).tier-1))*(1+.01875*p.level);}
 export function shopBuy(s:{coins:number;gear?:Gear},id:string){const g=s.gear!,p=catalog.find(x=>x.id===id);if(!p||p.tier!==shopNextTier(g,p.slot)||p.tier>maxTier(g,p.slot)||s.coins<p.price)return false;s.coins-=p.price;const item=makePart(p);g.items.push(item);g.mounted[p.slot]=item.id;(g.shopSteps||(g.shopSteps={}))[p.slot]=p.tier;return true;}
 export function upgradePart(s:{coins:number;gear?:Gear},id:string){const p=s.gear!.items.find(x=>x.id===id);if(!p||s.gear!.mounted[product(p).slot]!==p.id||!['shop','legacy'].includes(p.source)||p.level>=10||s.coins<upgradePrice(p))return false;s.coins-=upgradePrice(p);p.level++;return true;}
 export interface Research{id:string;name:string;description:string;slot:Slot;requires:string[];meters:number}
